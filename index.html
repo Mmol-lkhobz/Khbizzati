@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مول الخبز - التطبيق الذكي</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            background: #1a237e;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        
+        #currentDate {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            display: inline-block;
+            font-size: 14px;
+        }
+        
+        .stats {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .stats h2 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        #totalBread {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        
+        .add-section {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #1a237e;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background: #283593;
+        }
+        
+        .new-day-btn {
+            background: #9c27b0;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+        }
+        
+        .footer {
+            background: #263238;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4caf50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { top: -60px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍞 مول الخبز - التطبيق الذكي</h1>
+            <div id="currentDate"></div>
+        </div>
+        
+        <div class="stats">
+            <h2>إجمالي الوحدات الموزعة اليوم</h2>
+            <div id="totalBread">0 وحدة</div>
+        </div>
+        
+        <div class="add-section">
+            <h3>➕ إضافة زبون جديد</h3>
+            <div class="input-group">
+                <input type="text" id="customerName" placeholder="اسم الزبون">
+                <button id="addCustomerBtn">إضافة</button>
+            </div>
+        </div>
+        
+        <div id="customersList">
+            <!-- سيتم ملؤه بالزبائن -->
+        </div>
+        
+        <button class="new-day-btn" id="newDayBtn">🔄 بدء يوم جديد</button>
+        
+        <div class="footer">
+            <p>📞 للتواصل من أجل الإعلانات: <strong>0605062609</strong></p>
+            <p>تطبيق إدارة وتوزيع الخبز الذكي</p>
+        </div>
+    </div>
+
+    <script>
+        // متغيرات التطبيق
+        let customers = [];
+        
+        // تهيئة التطبيق عند التحميل
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDate();
+            loadData();
+            updateDisplay();
+            setupEventListeners();
+            showAlert('مرحباً بك في تطبيق مول الخبز! 🍞');
+        });
+        
+        // تحديث التاريخ
+        function updateDate() {
+            const now = new Date();
+            const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const dateStr = `${days[now.getDay()]} - ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+            document.getElementById('currentDate').textContent = dateStr;
+        }
+        
+        // إعداد الأزرار
+        function setupEventListeners() {
+            document.getElementById('addCustomerBtn').addEventListener('click', addCustomer);
+            document.getElementById('newDayBtn').addEventListener('click', startNewDay);
+            document.getElementById('customerName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addCustomer();
+            });
+        }
+        
+        // إضافة زبون
+        function addCustomer() {
+            const input = document.getElementById('customerName');
+            const name = input.value.trim();
+            
+            if (!name) {
+                showAlert('الرجاء إدخال اسم الزبون');
+                return;
+            }
+            
+            // التحقق من عدم تكرار الاسم
+            if (customers.some(c => c.name === name)) {
+                showAlert('هذا الزبون موجود بالفعل!');
+                return;
+            }
+            
+            // إضافة الزبون الجديد
+            customers.push({
+                id: Date.now(),
+                name: name,
+                total: 0
+            });
+            
+            // مسح الحقل وإعادة التركيز
+            input.value = '';
+            input.focus();
+            
+            // حفظ وعرض
+            saveData();
+            updateDisplay();
+            showAlert('تم إضافة الزبون: ' + name);
+        }
+        
+        // بدء يوم جديد
+        function startNewDay() {
+            if (customers.length === 0) {
+                showAlert('لا توجد بيانات ليوم حالي');
+                return;
+            }
+            
+            if (confirm(`لديك ${customers.length} زبون\nهل تريد بدء يوم جديد؟`)) {
+                customers = [];
+                saveData();
+                updateDisplay();
+                showAlert('تم بدء يوم جديد بنجاح!');
+            }
+        }
+        
+        // تحميل البيانات المحفوظة
+        function loadData() {
+            try {
+                const saved = localStorage.getItem('breadAppData');
+                if (saved) {
+                    customers = JSON.parse(saved);
+                }
+            } catch (e) {
+                customers = [];
+            }
+        }
+        
+        // حفظ البيانات
+        function saveData() {
+            localStorage.setItem('breadAppData', JSON.stringify(customers));
+        }
+        
+        // تحديث العرض
+        function updateDisplay() {
+            // حساب المجموع الكلي
+            const total = customers.reduce((sum, customer) => sum + customer.total, 0);
+            document.getElementById('totalBread').textContent = total + ' وحدة';
+            
+            // عرض قائمة الزبائن
+            const container = document.getElementById('customersList');
+            
+            if (customers.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #666; background: #f9f9f9; border-radius: 10px; margin: 10px 0;">
+                        <p>لا يوجد زبناء حالياً</p>
+                        <p style="font-size: 14px; margin-top: 10px;">ابدأ بإضافة أول زبون لك</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = customers.map(customer => `
+                <div style="background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="font-weight: bold; color: #1a237e; font-size: 16px;">${customer.name}</div>
+                        <div style="background: #4caf50; color: white; padding: 4px 12px; border-radius: 12px; font-weight: bold;">${customer.total} وحدة</div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" placeholder="عدد الوحدات" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" 
+                               onkeypress="if(event.key=='Enter') addUnits(${customer.id}, this)">
+                        <button onclick="addUnits(${customer.id}, this.previousElementSibling)" style="background: #ff9800; padding: 8px 15px;">➕ إضافة</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // إضافة وحدات لزبون
+        function addUnits(customerId, inputElement) {
+            const amount = parseInt(inputElement.value);
+            
+            if (!amount || amount <= 0) {
+                showAlert('الرجاء إدخال عدد صحيح');
+                return;
+            }
+            
+            const customer = customers.find(c => c.id === customerId);
+            if (customer) {
+                customer.total += amount;
+                inputElement.value = '';
+                saveData();
+                updateDisplay();
+                showAlert(`تم إضافة ${amount} وحدة لـ ${customer.name}`);
+            }
+        }
+        
+        // عرض رسائل تنبيه
+        function showAlert(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert';
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
