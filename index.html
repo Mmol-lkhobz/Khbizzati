@@ -37,7 +37,6 @@
         .header h1 { font-size: 22px; margin-bottom: 5px; }
         .header p { font-size: 12px; opacity: 0.8; }
 
-        /* زر البرنامج اليومي */
         .schedule-btn {
             background: #1e6091;
             color: white;
@@ -51,7 +50,6 @@
             cursor: pointer;
         }
 
-        /* نافذة البرنامج اليومي المنبثقة */
         .modal {
             position: fixed;
             top: 0;
@@ -128,9 +126,7 @@
             flex-wrap: wrap;
             gap: 8px;
         }
-        .schedule-info {
-            flex: 1;
-        }
+        .schedule-info { flex: 1; }
         .schedule-name { font-weight: bold; color: #2d6a4f; font-size: 16px; }
         .schedule-details { font-size: 13px; color: #555; }
         .schedule-actions button {
@@ -140,7 +136,6 @@
             padding: 5px 12px;
             border-radius: 8px;
             cursor: pointer;
-            margin-right: 5px;
         }
         .clear-schedule-btn {
             background: #e67e22;
@@ -343,13 +338,31 @@
             from { top: -50px; opacity: 0; }
             to { top: 20px; opacity: 1; }
         }
-        .customer-view-container {
+        
+        /* صفحة الزبون - نسخة مستقلة */
+        .customer-view-page {
             max-width: 450px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
             overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
+        .customer-view-name {
+            font-size: 28px;
+            color: #2d6a4f;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .customer-view-total {
+            background: #f4a261;
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .customer-view-total span { font-size: 36px; font-weight: bold; }
         .back-home {
             display: block;
             background: #2d6a4f;
@@ -359,348 +372,302 @@
             text-decoration: none;
             margin: 15px;
             border-radius: 10px;
+            font-weight: bold;
         }
-        .customer-view-card {
-            background: white;
-            margin: 15px;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-        }
-        .customer-view-name { font-size: 28px; color: #2d6a4f; margin-bottom: 20px; }
-        .customer-view-total {
-            background: #f4a261;
-            color: white;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-        .customer-view-total span { font-size: 36px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="mainApp"></div>
 
     <script>
-        // بيانات الزبناء
+        // ========== بيانات الزبناء ==========
         let customers = [];
-        
-        // بيانات البرنامج اليومي
         let dailySchedule = [];
 
-        // ========== دوال البرنامج اليومي ==========
+        // ========== دوال مساعدة ==========
+        function showAlert(msg) {
+            let div = document.createElement('div');
+            div.className = 'alert';
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 2500);
+        }
+
+        function escapeHtml(t) {
+            let d = document.createElement('div');
+            d.textContent = t;
+            return d.innerHTML;
+        }
+
+        function getBaseUrl() {
+            return window.location.origin + window.location.pathname;
+        }
+
+        // ========== حفظ وتحميل البيانات ==========
+        function saveData() { localStorage.setItem('moulBreadData', JSON.stringify(customers)); }
+        function loadData() {
+            let saved = localStorage.getItem('moulBreadData');
+            if(saved) { try{ customers = JSON.parse(saved); }catch(e){ customers = []; } }
+        }
+
+        function saveSchedule() { localStorage.setItem('dailySchedule', JSON.stringify(dailySchedule)); }
         function loadSchedule() {
-            try {
-                const saved = localStorage.getItem('dailySchedule');
-                if (saved) {
-                    dailySchedule = JSON.parse(saved);
-                }
-            } catch(e) { dailySchedule = []; }
+            let saved = localStorage.getItem('dailySchedule');
+            if(saved) { try{ dailySchedule = JSON.parse(saved); }catch(e){ dailySchedule = []; } }
         }
-        
-        function saveSchedule() {
-            localStorage.setItem('dailySchedule', JSON.stringify(dailySchedule));
+
+        // ========== البرنامج اليومي ==========
+        function showScheduleModal() {
+            let existing = document.getElementById('scheduleModal');
+            if(existing) existing.remove();
+            
+            let scheduleHtml = dailySchedule.length === 0 ? '<div style="text-align:center;padding:20px;color:#adb5bd;">📋 لا توجد مواعيد مضافة</div>' :
+                dailySchedule.map(s => `<div class="schedule-item"><div class="schedule-info"><div class="schedule-name">${escapeHtml(s.name)}</div><div class="schedule-details">🍞 ${s.amount} وحدة | ⏰ ${s.time}</div></div><div class="schedule-actions"><button onclick="deleteFromSchedule(${s.id})">🗑️</button></div></div>`).join('');
+            
+            let modal = document.createElement('div');
+            modal.id = 'scheduleModal';
+            modal.className = 'modal';
+            modal.innerHTML = `<div class="modal-content"><div class="modal-header"><h3>📋 البرنامج اليومي</h3><button class="close-modal" onclick="this.closest(\'.modal\').remove()">✖</button></div>
+                <div class="schedule-form"><input type="text" id="scheduleName" placeholder="اسم الزبون"><input type="number" id="scheduleAmount" placeholder="عدد الخبز اليومي"><input type="time" id="scheduleTime" placeholder="الساعة">
+                <button onclick="addToSchedule()">➕ إضافة موعد</button></div>
+                <div id="scheduleList">${scheduleHtml}</div>
+                <button class="clear-schedule-btn" onclick="clearAllSchedule()">🗑️ مسح البرنامج اليومي بالكامل</button></div>`;
+            document.body.appendChild(modal);
         }
-        
+
         function addToSchedule() {
-            const name = document.getElementById('scheduleName')?.value.trim();
-            const amount = document.getElementById('scheduleAmount')?.value;
-            const time = document.getElementById('scheduleTime')?.value;
-            
-            if (!name) { showAlert('الرجاء إدخال اسم الزبون'); return; }
-            if (!amount || amount <= 0) { showAlert('الرجاء إدخال عدد صحيح من الخبز'); return; }
-            if (!time) { showAlert('الرجاء إدخال الساعة'); return; }
-            
-            dailySchedule.push({
-                id: Date.now(),
-                name: name,
-                amount: parseInt(amount),
-                time: time
-            });
+            let name = document.getElementById('scheduleName')?.value.trim();
+            let amount = document.getElementById('scheduleAmount')?.value;
+            let time = document.getElementById('scheduleTime')?.value;
+            if(!name) { showAlert('الرجاء إدخال اسم الزبون'); return; }
+            if(!amount || amount<=0) { showAlert('الرجاء إدخال عدد صحيح'); return; }
+            if(!time) { showAlert('الرجاء إدخال الساعة'); return; }
+            dailySchedule.push({ id: Date.now(), name: name, amount: parseInt(amount), time: time });
             saveSchedule();
             showScheduleModal();
-            showAlert(`✅ تم إضافة ${name} إلى البرنامج اليومي`);
-            checkReminders();
+            showAlert(`✅ تم إضافة ${name}`);
         }
-        
+
         function deleteFromSchedule(id) {
             dailySchedule = dailySchedule.filter(s => s.id != id);
             saveSchedule();
             showScheduleModal();
-            showAlert('🗑️ تم الحذف من البرنامج');
+            showAlert('🗑️ تم الحذف');
         }
-        
+
         function clearAllSchedule() {
-            if (dailySchedule.length === 0) { showAlert('لا توجد بيانات للحذف'); return; }
-            if (confirm('⚠️ هل تريد مسح كل البرنامج اليومي؟ لن يؤثر ذلك على التوزيع الحالي.')) {
-                dailySchedule = [];
-                saveSchedule();
-                showScheduleModal();
-                showAlert('✅ تم مسح البرنامج اليومي');
-            }
+            if(dailySchedule.length===0) { showAlert('لا توجد بيانات'); return; }
+            if(confirm('⚠️ مسح كل البرنامج اليومي؟')) { dailySchedule = []; saveSchedule(); showScheduleModal(); showAlert('✅ تم المسح'); }
         }
-        
+
+        function requestNotifPermission() {
+            if(!("Notification" in window)) { showAlert("المتصفح لا يدعم الإشعارات"); return; }
+            Notification.requestPermission().then(perm => { if(perm==='granted') showAlert("🔔 تم تفعيل الإشعارات"); });
+        }
+
         function checkReminders() {
-            const now = new Date();
-            const currentHour = now.getHours();
-            const currentMinute = now.getMinutes();
-            const currentTime = `${currentHour.toString().padStart(2,'0')}:${currentMinute.toString().padStart(2,'0')}`;
-            
-            // التحقق من المواعيد القريبة (قبل 5 دقائق)
+            let now = new Date();
+            let currentHour = now.getHours();
+            let currentMinute = now.getMinutes();
             dailySchedule.forEach(item => {
-                const [schHour, schMinute] = item.time.split(':').map(Number);
-                const diffMinutes = (schHour * 60 + schMinute) - (currentHour * 60 + currentMinute);
-                if (diffMinutes >= 0 && diffMinutes <= 5) {
-                    const lastNotif = localStorage.getItem(`reminder_${item.id}_${now.toDateString()}`);
-                    if (!lastNotif) {
+                let [schHour, schMinute] = item.time.split(':').map(Number);
+                let diff = (schHour*60+schMinute) - (currentHour*60+currentMinute);
+                if(diff>=0 && diff<=5) {
+                    let lastNotif = localStorage.getItem(`reminder_${item.id}_${now.toDateString()}`);
+                    if(!lastNotif) {
                         localStorage.setItem(`reminder_${item.id}_${now.toDateString()}`, 'sent');
-                        if (Notification.permission === 'granted') {
-                            new Notification(`🔔 تذكير: ${item.name}`, {
-                                body: `الكمية: ${item.amount} وحدة - الساعة: ${item.time}`
-                            });
-                        }
+                        if(Notification.permission==='granted') new Notification(`🔔 تذكير: ${item.name}`, { body: `${item.amount} وحدة - ${item.time}` });
                         showAlert(`🔔 تذكير: ${item.name} - ${item.amount} وحدة الساعة ${item.time}`);
                     }
                 }
             });
         }
-        
-        // نافذة البرنامج اليومي
-        function showScheduleModal() {
-            let existing = document.getElementById('scheduleModal');
-            if(existing) existing.remove();
-            
-            let scheduleHtml = '';
-            if (dailySchedule.length === 0) {
-                scheduleHtml = '<div style="text-align:center;padding:20px;color:#adb5bd;">📋 لا توجد مواعيد مضافة</div>';
-            } else {
-                scheduleHtml = dailySchedule.map(s => `
-                    <div class="schedule-item">
-                        <div class="schedule-info">
-                            <div class="schedule-name">${escapeHtml(s.name)}</div>
-                            <div class="schedule-details">🍞 ${s.amount} وحدة | ⏰ ${s.time}</div>
-                        </div>
-                        <div class="schedule-actions">
-                            <button onclick="deleteFromSchedule(${s.id})">🗑️</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            const modal = document.createElement('div');
-            modal.id = 'scheduleModal';
-            modal.className = 'modal';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>📋 البرنامج اليومي</h3>
-                        <button class="close-modal" onclick="this.closest('.modal').remove()">✖</button>
-                    </div>
-                    
-                    <div class="schedule-form">
-                        <input type="text" id="scheduleName" placeholder="اسم الزبون">
-                        <input type="number" id="scheduleAmount" placeholder="عدد الخبز اليومي">
-                        <input type="time" id="scheduleTime" placeholder="الساعة">
-                        <button onclick="addToSchedule(); this.closest('.modal').querySelector('#scheduleName').value='';">➕ إضافة موعد</button>
-                    </div>
-                    
-                    <div id="scheduleList">
-                        ${scheduleHtml}
-                    </div>
-                    
-                    <button class="clear-schedule-btn" onclick="clearAllSchedule()">🗑️ مسح البرنامج اليومي بالكامل</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            
-            // تحديث القائمة بعد الإضافة
-            window.updateScheduleList = function() {
-                const container = document.querySelector('#scheduleList');
-                if(container) {
-                    if(dailySchedule.length === 0) {
-                        container.innerHTML = '<div style="text-align:center;padding:20px;color:#adb5bd;">📋 لا توجد مواعيد مضافة</div>';
-                    } else {
-                        container.innerHTML = dailySchedule.map(s => `
-                            <div class="schedule-item">
-                                <div class="schedule-info">
-                                    <div class="schedule-name">${escapeHtml(s.name)}</div>
-                                    <div class="schedule-details">🍞 ${s.amount} وحدة | ⏰ ${s.time}</div>
-                                </div>
-                                <div class="schedule-actions">
-                                    <button onclick="deleteFromSchedule(${s.id})">🗑️</button>
-                                </div>
-                            </div>
-                        `).join('');
-                    }
-                }
-            };
-        }
-        
-        // طلب إذن الإشعارات
-        function requestNotifPermission() {
-            if (!("Notification" in window)) { showAlert("المتصفح لا يدعم الإشعارات"); return; }
-            Notification.requestPermission().then(perm => {
-                if(perm === 'granted') showAlert("🔔 تم تفعيل الإشعارات");
-                else showAlert("❌ لم يتم التفعيل");
-            });
-        }
 
-        // ========== الدوال الأصلية (بدون تغيير) ==========
-        function getBaseUrl() { return window.location.origin + window.location.pathname; }
-        
-        async function copyCustomerLink(customerId, customerName) {
-            const link = getBaseUrl() + '?customer=' + encodeURIComponent(customerName);
-            try {
-                await navigator.clipboard.writeText(link);
-                showAlert(`📋 تم نسخ رابط ${customerName}`);
-            } catch(err) { showAlert('فشل النسخ'); }
-        }
-        
-        function loadData() {
-            try {
-                const saved = localStorage.getItem('moulBreadData');
-                if (saved) customers = JSON.parse(saved);
-            } catch(e) { customers = []; }
-        }
-        
-        function saveData() { localStorage.setItem('moulBreadData', JSON.stringify(customers)); }
-        
+        // ========== الدوال الأصلية ==========
         function addCustomer() {
-            const input = document.getElementById('customerName');
-            const name = input.value.trim();
-            if (!name) { showAlert('الرجاء إدخال اسم الزبون'); return; }
-            if (customers.some(c => c.name === name)) { showAlert('هذا الزبون موجود بالفعل'); return; }
+            let input = document.getElementById('customerName');
+            let name = input.value.trim();
+            if(!name) { showAlert('الرجاء إدخال اسم الزبون'); return; }
+            if(customers.some(c=>c.name===name)) { showAlert('الزبون موجود بالفعل'); return; }
             customers.push({ id: Date.now(), name: name, payments: [] });
             input.value = '';
             saveData();
             updateDisplay();
             showAlert(`تم إضافة ${name} ✅`);
         }
-        
-        function addPayment(customerId) {
-            const input = document.querySelector(`[data-payment-input="${customerId}"]`);
-            if (!input) return;
-            const amount = parseInt(input.value);
-            if (!amount || amount <= 0) { showAlert('أدخل عدد الوحدات'); return; }
-            const customer = customers.find(c => c.id == customerId);
-            if (!customer) return;
-            const now = new Date();
-            const timeString = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-            customer.payments.push({ amount: amount, time: timeString });
+
+        function addPayment(cid) {
+            let input = document.querySelector(`[data-payment-input="${cid}"]`);
+            if(!input) return;
+            let amount = parseInt(input.value);
+            if(!amount || amount<=0) { showAlert('أدخل عدد الوحدات'); return; }
+            let cust = customers.find(c=>c.id==cid);
+            if(!cust) return;
+            let now = new Date();
+            let timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+            cust.payments.push({ amount: amount, time: timeStr });
             input.value = '';
             saveData();
             updateDisplay();
             showAlert(`تم إضافة ${amount} وحدة ✅`);
         }
-        
-        function deleteCustomer(customerId) {
-            const customer = customers.find(c => c.id == customerId);
-            if (!customer) return;
-            if (confirm(`هل تريد حذف ${customer.name}؟`)) {
-                customers = customers.filter(c => c.id != customerId);
+
+        function deleteCustomer(cid) {
+            let cust = customers.find(c=>c.id==cid);
+            if(!cust) return;
+            if(confirm(`حذف ${cust.name}؟`)) {
+                customers = customers.filter(c=>c.id!=cid);
                 saveData();
                 updateDisplay();
-                showAlert(`تم حذف ${customer.name} 🗑️`);
+                showAlert(`تم حذف ${cust.name} 🗑️`);
             }
         }
-        
+
+        function copyLink(cid, name) {
+            let link = getBaseUrl() + '?customer=' + encodeURIComponent(name);
+            navigator.clipboard.writeText(link).then(()=>showAlert(`📋 تم نسخ رابط ${name}`)).catch(()=>showAlert('فشل النسخ'));
+        }
+
         function startNewDay() {
-            if (customers.length === 0) { showAlert('لا توجد بيانات لحذفها'); return; }
-            const total = customers.reduce((sum, c) => sum + c.payments.reduce((s, p) => s + p.amount, 0), 0);
-            if (confirm(`📊 المجموع: ${total} وحدة\nعدد الزبناء: ${customers.length}\n\n⚠️ بدء يوم جديد؟ سيتم مسح كل بيانات التوزيع.`)) {
+            if(customers.length===0) { showAlert('لا توجد بيانات'); return; }
+            let total = customers.reduce((s,c)=>s+c.payments.reduce((s2,p)=>s2+p.amount,0),0);
+            if(confirm(`المجموع: ${total} وحدة\n${customers.length} زبون\nبدء يوم جديد؟`)) {
                 customers = [];
                 saveData();
                 updateDisplay();
                 showAlert('تم بدء يوم جديد 🎉');
             }
         }
-        
+
         function searchCustomers() {
-            const searchInput = document.getElementById('searchInput');
-            if(!searchInput) return;
-            const searchText = searchInput.value.trim().toLowerCase();
-            document.querySelectorAll('.customer-card').forEach(card => {
-                const nameEl = card.querySelector('.customer-name');
-                if(nameEl) {
-                    const name = nameEl.textContent.toLowerCase();
-                    if(searchText === '' || name.includes(searchText)) card.classList.remove('hidden');
-                    else card.classList.add('hidden');
-                }
+            let inp = document.getElementById('searchInput');
+            if(!inp) return;
+            let txt = inp.value.trim().toLowerCase();
+            document.querySelectorAll('.customer-card').forEach(card=>{
+                let name = card.querySelector('.customer-name')?.textContent.toLowerCase()||'';
+                if(txt==='' || name.includes(txt)) card.classList.remove('hidden');
+                else card.classList.add('hidden');
             });
         }
-        
+
+        // ========== صفحة الزبون (المصلحة) ==========
         function showCustomerView(customerName) {
-            const customer = customers.find(c => c.name === customerName);
+            // البحث عن الزبون
+            let customer = customers.find(c => c.name === customerName);
+            
+            // إذا لم يوجد الزبون
             if (!customer) {
-                return `<div class="customer-view-container"><div style="text-align:center;padding:50px;"><h2>⚠️ لا يوجد زبون</h2><a href="${getBaseUrl()}" class="back-home">العودة</a></div></div>`;
+                return `<!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>الزبون غير موجود</title>
+                <style>body{font-family:'Tahoma';background:#1a472a;padding:20px;text-align:center;} .card{background:white;max-width:400px;margin:0 auto;border-radius:20px;padding:40px;} button{background:#2d6a4f;color:white;border:none;padding:12px 20px;border-radius:10px;margin-top:20px;}</style>
+                </head>
+                <body><div class="card"><h2>⚠️ لا يوجد زبون بهذا الاسم</h2><p>الرجاء التأكد من الرابط أو التواصل مع المدير</p><a href="${getBaseUrl()}" style="background:#2d6a4f;color:white;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block;margin-top:20px;">🏠 العودة للرئيسية</a></div></body></html>`;
             }
-            const customerTotal = customer.payments.reduce((s, p) => s + p.amount, 0);
+            
+            // حساب إجمالي الوحدات
+            let customerTotal = customer.payments.reduce((s, p) => s + p.amount, 0);
+            
+            // بناء سجل الدفعات
             let paymentsHtml = '';
             if (customer.payments.length > 0) {
-                [...customer.payments].reverse().forEach(p => {
+                let reversed = [...customer.payments].reverse();
+                for (let p of reversed) {
                     paymentsHtml += `<div class="payment-log-item"><span class="time">⏰ ${p.time}</span><span class="amount">🍞 ${p.amount} وحدة</span></div>`;
-                });
-            } else { paymentsHtml = '<div class="empty-log">لا توجد طلبات بعد</div>'; }
-            return `<div class="customer-view-container"><div class="header"><h1>🍞 مول الخبز</h1><p>سجل الخبز الخاص بك</p></div>
-                <div class="customer-view-card"><div class="customer-view-name">${escapeHtml(customer.name)}</div>
-                <div class="customer-view-total"><div>📊 إجمالي الوحدات</div><span>${customerTotal}</span><div>وحدة</div></div>
-                <div class="payments-log" style="max-height:300px;">${paymentsHtml}</div></div>
-                <a href="${getBaseUrl()}" class="back-home">🏠 العودة للصفحة الرئيسية</a>
-                <div class="footer">📞 للتواصل<div class="phone">0605062609</div></div></div>`;
+                }
+            } else {
+                paymentsHtml = '<div class="empty-log" style="text-align:center;padding:20px;color:#adb5bd;">لا توجد طلبات بعد</div>';
+            }
+            
+            // إرجاع صفحة كاملة للزبون
+            return `<!DOCTYPE html>
+            <html lang="ar" dir="rtl">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>سجل ${escapeHtml(customer.name)}</title>
+                <style>
+                    *{margin:0;padding:0;box-sizing:border-box;}
+                    body{font-family:'Tahoma','Arial',sans-serif;background:linear-gradient(135deg,#1a472a,#2d6a4f);min-height:100vh;padding:15px;}
+                    .customer-view-page{max-width:450px;margin:0 auto;background:white;border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.2);}
+                    .header{background:#2d6a4f;color:white;padding:20px;text-align:center;}
+                    .header h1{font-size:22px;margin-bottom:5px;}
+                    .header p{font-size:12px;opacity:0.8;}
+                    .customer-view-card{background:white;margin:15px;padding:20px;border-radius:15px;text-align:center;}
+                    .customer-view-name{font-size:28px;color:#2d6a4f;margin-bottom:20px;}
+                    .customer-view-total{background:#f4a261;color:white;padding:15px;border-radius:15px;margin-bottom:20px;}
+                    .customer-view-total span{font-size:36px;font-weight:bold;}
+                    .payments-log{background:#f8f9fa;border-radius:10px;padding:10px;margin-bottom:20px;max-height:300px;overflow-y:auto;}
+                    .payment-log-item{display:flex;justify-content:space-between;padding:6px 8px;border-bottom:1px solid #e9ecef;font-size:13px;}
+                    .payment-log-item .time{color:#6c757d;}
+                    .payment-log-item .amount{font-weight:bold;color:#2d6a4f;}
+                    .empty-log{text-align:center;color:#adb5bd;font-size:12px;padding:8px;}
+                    .back-home{display:block;background:#2d6a4f;color:white;text-align:center;padding:12px;text-decoration:none;margin:15px;border-radius:10px;font-weight:bold;}
+                    .footer{background:#1a472a;color:white;text-align:center;padding:15px;font-size:12px;}
+                    .footer .phone{font-size:16px;font-weight:bold;margin-top:5px;}
+                </style>
+            </head>
+            <body>
+                <div class="customer-view-page">
+                    <div class="header">
+                        <h1>🍞 مول الخبز</h1>
+                        <p>سجل الخبز الخاص بك</p>
+                    </div>
+                    <div class="customer-view-card">
+                        <div class="customer-view-name">${escapeHtml(customer.name)}</div>
+                        <div class="customer-view-total">
+                            <div>📊 إجمالي الوحدات</div>
+                            <span>${customerTotal}</span>
+                            <div>وحدة</div>
+                        </div>
+                        <div class="payments-log">
+                            ${paymentsHtml}
+                        </div>
+                    </div>
+                    <a href="${getBaseUrl()}" class="back-home">🏠 العودة للصفحة الرئيسية</a>
+                    <div class="footer">
+                        📞 للتواصل من أجل الإعلانات
+                        <div class="phone">0605062609</div>
+                    </div>
+                </div>
+            </body>
+            </html>`;
         }
-        
+
+        // ========== عرض الواجهة الرئيسية ==========
         function updateDisplay() {
-            const total = customers.reduce((sum, c) => sum + c.payments.reduce((s, p) => s + p.amount, 0), 0);
-            const container = document.getElementById('customersList');
-            if (!container) return;
-            const totalEl = document.getElementById('totalBread');
-            if (totalEl) totalEl.textContent = total;
-            if (customers.length === 0) {
-                container.innerHTML = `<div style="text-align:center;padding:40px;color:#adb5bd;">👥 لا يوجد زبناء<br><span style="font-size:12px;">أضف زبونك الأول</span></div>`;
+            let total = customers.reduce((s,c)=>s+c.payments.reduce((s2,p)=>s2+p.amount,0),0);
+            let totalEl = document.getElementById('totalBread');
+            if(totalEl) totalEl.textContent = total;
+            let container = document.getElementById('customersList');
+            if(!container) return;
+            if(customers.length===0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:#adb5bd;">👥 لا يوجد زبناء<br><span style="font-size:12px;">أضف زبونك الأول</span></div>';
                 return;
             }
-            container.innerHTML = customers.map(customer => {
-                const customerTotal = customer.payments.reduce((s, p) => s + p.amount, 0);
-                let paymentsHtml = '';
-                if (customer.payments.length > 0) {
-                    [...customer.payments].reverse().forEach(p => {
-                        paymentsHtml += `<div class="payment-log-item"><span class="time">⏰ ${p.time}</span><span class="amount">🍞 ${p.amount} وحدة</span></div>`;
-                    });
-                } else { paymentsHtml = '<div class="empty-log">لا توجد طلبات بعد</div>'; }
-                return `<div class="customer-card"><div class="customer-row"><span class="customer-name">${escapeHtml(customer.name)}</span>
-                    <span class="customer-total">${customerTotal} وحدة</span></div>
-                    <div class="payment-row"><input type="number" data-payment-input="${customer.id}" placeholder="عدد الوحدات" onkeypress="if(event.key=='Enter')addPayment(${customer.id})">
-                    <button onclick="addPayment(${customer.id})">➕ إضافة</button></div>
-                    <div class="payments-log">${paymentsHtml}</div>
-                    <div class="customer-buttons">
-                        <button class="copy-link-btn" onclick="copyCustomerLink(${customer.id}, '${escapeHtml(customer.name).replace(/'/g, "\\'")}')">📋 نسخ الرابط</button>
-                        <button class="delete-customer-btn" onclick="deleteCustomer(${customer.id})">🗑️ حذف الزبون</button>
-                    </div></div>`;
-            }).join('');
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput && searchInput.value) searchCustomers();
+            let html = '';
+            for(let c of customers) {
+                let custTotal = c.payments.reduce((s,p)=>s+p.amount,0);
+                let logs = '';
+                if(c.payments.length) {
+                    let rev = [...c.payments].reverse();
+                    for(let p of rev) logs += `<div class="payment-log-item"><span class="time">⏰ ${p.time}</span><span class="amount">🍞 ${p.amount} وحدة</span></div>`;
+                } else { logs = '<div class="empty-log">لا توجد طلبات بعد</div>'; }
+                html += `<div class="customer-card">
+                    <div class="customer-row"><span class="customer-name">${escapeHtml(c.name)}</span><span class="customer-total">${custTotal} وحدة</span></div>
+                    <div class="payment-row"><input type="number" data-payment-input="${c.id}" placeholder="عدد الوحدات" onkeypress="if(event.key=='Enter') addPayment(${c.id})"><button onclick="addPayment(${c.id})">➕ إضافة</button></div>
+                    <div class="payments-log">${logs}</div>
+                    <div class="customer-buttons"><button class="copy-link-btn" onclick="copyLink(${c.id},'${escapeHtml(c.name).replace(/'/g,"\\'")}')">📋 نسخ الرابط</button><button class="delete-customer-btn" onclick="deleteCustomer(${c.id})">🗑️ حذف الزبون</button></div>
+                </div>`;
+            }
+            container.innerHTML = html;
+            searchCustomers();
         }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        function showAlert(message) {
-            const alert = document.createElement('div');
-            alert.className = 'alert';
-            alert.textContent = message;
-            document.body.appendChild(alert);
-            setTimeout(() => alert.remove(), 2500);
-        }
-        
+
         function showMainApp() {
-            const html = `<div class="app-container">
+            let html = `<div class="app-container">
                 <div class="header"><h1>🍞 مول الخبز</h1><p>تطبيق إدارة وتوزيع الخبز الذكي</p></div>
-                
                 <button class="schedule-btn" onclick="requestNotifPermission(); showScheduleModal();">📋 البرنامج اليومي (مواعيد ثابتة)</button>
-                
                 <div class="phone-banner">📞 عبدالرزاق<span>0605062609</span></div>
                 <div class="total-card"><h3>📊 إجمالي الوحدات الموزعة اليوم</h3><div class="total-value" id="totalBread">0</div><p style="font-size:12px;margin-top:5px;">وحدة</p></div>
                 <div class="add-section"><h4>➕ إضافة زبون جديد</h4><div class="input-row"><input type="text" id="customerName" placeholder="اسم الزبون"><button id="addCustomerBtn">إضافة</button></div></div>
@@ -710,40 +677,38 @@
                 <div class="footer">📞 للتواصل من أجل الإعلانات<div class="phone">0605062609</div></div>
             </div>`;
             document.getElementById('mainApp').innerHTML = html;
-            document.getElementById('addCustomerBtn').addEventListener('click', addCustomer);
-            document.getElementById('customerName').addEventListener('keypress', e => { if(e.key === 'Enter') addCustomer(); });
-            document.getElementById('newDayBtn').addEventListener('click', startNewDay);
+            document.getElementById('addCustomerBtn').onclick = addCustomer;
+            document.getElementById('customerName').onkeypress = e => { if(e.key==='Enter') addCustomer(); };
+            document.getElementById('newDayBtn').onclick = startNewDay;
             updateDisplay();
         }
-        
-        function init() {
-            loadData();
-            loadSchedule();
-            // فحص الإشعارات كل دقيقة
-            setInterval(checkReminders, 60000);
-            checkReminders();
-            const urlParams = new URLSearchParams(window.location.search);
-            const customerParam = urlParams.get('customer');
-            if (customerParam) {
-                document.getElementById('mainApp').innerHTML = showCustomerView(customerParam);
-            } else {
-                showMainApp();
-            }
-        }
-        
-        // ربط الدوال للاستخدام العام
+
+        // ========== ربط الدوال ==========
         window.addPayment = addPayment;
         window.deleteCustomer = deleteCustomer;
-        window.copyCustomerLink = copyCustomerLink;
+        window.copyLink = copyLink;
         window.searchCustomers = searchCustomers;
-        window.startNewDay = startNewDay;
         window.showScheduleModal = showScheduleModal;
         window.addToSchedule = addToSchedule;
         window.deleteFromSchedule = deleteFromSchedule;
         window.clearAllSchedule = clearAllSchedule;
         window.requestNotifPermission = requestNotifPermission;
+        window.showAlert = showAlert;
+
+        // ========== بدء التشغيل ==========
+        loadData();
+        loadSchedule();
+        setInterval(checkReminders, 60000);
+        checkReminders();
         
-        document.addEventListener('DOMContentLoaded', init);
+        let urlParams = new URLSearchParams(window.location.search);
+        let customerParam = urlParams.get('customer');
+        if(customerParam) {
+            document.write(showCustomerView(customerParam));
+            document.close();
+        } else {
+            showMainApp();
+        }
     </script>
 </body>
 </html>
