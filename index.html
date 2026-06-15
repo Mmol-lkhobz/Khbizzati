@@ -247,6 +247,13 @@
             gap: 8px;
         }
         .customer-name { font-size: 18px; font-weight: bold; color: #2d6a4f; }
+        .customer-total {
+            background: #e9ecef;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #2d6a4f;
+        }
         .customer-status {
             background: #e9ecef;
             padding: 5px 12px;
@@ -349,7 +356,6 @@
             from { top: -50px; opacity: 0; }
             to { top: 20px; opacity: 1; }
         }
-        /* صفحة الطباعة */
         @media print {
             body * { visibility: hidden; }
             .print-area, .print-area * { visibility: visible; }
@@ -364,7 +370,7 @@
             // ==================== البيانات الأساسية ====================
             let customers = [];
             let dailySchedule = [];
-            let currentFilter = 'all'; // all, paid, unpaid
+            let currentFilter = 'all';
 
             // ==================== دوال مساعدة ====================
             function showAlert(msg) {
@@ -390,7 +396,6 @@
             function loadData() {
                 let saved = localStorage.getItem('moulBreadData');
                 if(saved) { try{ customers = JSON.parse(saved); } catch(e){ customers = []; } }
-                // إضافة حقل isPaid للزبائن القديمين
                 customers.forEach(c => { if(c.isPaid === undefined) c.isPaid = false; });
             }
             function saveSchedule() { localStorage.setItem('dailySchedule', JSON.stringify(dailySchedule)); }
@@ -462,31 +467,18 @@
                             th { background: #2d6a4f; color: white; }
                             .total { font-size: 18px; font-weight: bold; text-align: center; margin-top: 20px; padding-top: 10px; border-top: 2px solid #2d6a4f; }
                             .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-                            @media print {
-                                button { display: none; }
-                            }
+                            @media print { button { display: none; } }
                         </style>
                     </head>
                     <body>
                         <div class="invoice">
-                            <div class="header">
-                                <h1>🍞 مول الخبز</h1>
-                                <p>فاتورة العميل</p>
-                            </div>
+                            <div class="header"><h1>🍞 مول الخبز</h1><p>فاتورة العميل</p></div>
                             <div class="customer-name">${escapeHtml(customer.name)}</div>
-                            <table>
-                                <tr><th>الوقت</th><th>الكمية</th></tr>
-                                ${paymentsHtml}
-                            </table>
+                            <table><thead><tr><th>الوقت</th><th>الكمية</th></tr></thead><tbody>${paymentsHtml}</tbody></table>
                             <div class="total">📊 الإجمالي: ${total} وحدة</div>
-                            <div class="footer">
-                                📞 للتواصل: 0605062609<br>
-                                تاريخ الفاتورة: ${new Date().toLocaleDateString('ar')}
-                            </div>
+                            <div class="footer">📞 للتواصل: 0605062609<br>تاريخ الفاتورة: ${new Date().toLocaleDateString('ar')}</div>
                         </div>
-                        <div style="text-align:center; margin-top:20px;">
-                            <button onclick="window.print(); setTimeout(()=>window.close(), 500);">🖨️ طباعة الفاتورة</button>
-                        </div>
+                        <div style="text-align:center; margin-top:20px;"><button onclick="window.print(); setTimeout(()=>window.close(), 500);">🖨️ طباعة الفاتورة</button></div>
                     </body>
                     </html>
                 `);
@@ -693,7 +685,10 @@
                     } else { logs = '<div class="empty-log">لا توجد طلبات بعد</div>'; }
                     html += `<div class="customer-card" data-status="${c.isPaid ? 'paid' : 'unpaid'}">
                         <div class="customer-row">
-                            <span class="customer-name">${escapeHtml(c.name)}</span>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span class="customer-name">${escapeHtml(c.name)}</span>
+                                <span class="customer-total">${custTotal} وحدة</span>
+                            </div>
                             <span class="customer-status ${c.isPaid ? 'paid' : 'unpaid'}" onclick="togglePaidStatus(${c.id})">${c.isPaid ? '✅ خالص' : '⚠️ غير خالص'}</span>
                         </div>
                         <div class="payment-row"><input type="number" data-payment-input="${c.id}" placeholder="عدد الوحدات" onkeypress="if(event.key=='Enter') addPayment(${c.id})"><button onclick="addPayment(${c.id})">➕ إضافة</button></div>
@@ -712,13 +707,11 @@
             function showMainApp() {
                 let html = `<div class="app-container">
                     <div class="header"><h1>🍞 مول الخبز</h1><p>تطبيق إدارة وتوزيع الخبز الذكي</p></div>
-                    
                     <div class="filter-buttons">
                         <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">📋 كل الزبائن</button>
                         <button class="filter-btn" data-filter="paid" onclick="setFilter('paid')">✅ خالص</button>
                         <button class="filter-btn" data-filter="unpaid" onclick="setFilter('unpaid')">⚠️ غير خالص</button>
                     </div>
-                    
                     <button class="schedule-btn" onclick="requestNotifPermission(); showScheduleModal();">📋 البرنامج اليومي (مواعيد ثابتة)</button>
                     <div class="phone-banner">📞 عبدالرزاق<span>0605062609</span></div>
                     <div class="total-card"><h3>📊 إجمالي الوحدات الموزعة اليوم</h3><div class="total-value" id="totalBread">0</div><p style="font-size:12px;margin-top:5px;">وحدة</p></div>
@@ -744,7 +737,6 @@
             window.deleteFromSchedule = deleteFromSchedule;
             window.clearAllSchedule = clearAllSchedule;
             window.requestNotifPermission = requestNotifPermission;
-            window.showAlert = showAlert;
             window.printInvoice = printInvoice;
             window.togglePaidStatus = togglePaidStatus;
             window.setFilter = setFilter;
