@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>مول الخبز - الإدارة</title>
+    <title>مول الخبز - إدارة وتوزيع ذكي</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -28,8 +28,28 @@
         }
         .header h1 { font-size: 22px; margin-bottom: 5px; }
         .header p { font-size: 12px; opacity: 0.8; }
-        .schedule-btn {
+
+        /* أزرار التصدير والاستيراد */
+        .data-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 15px 0 15px;
+        }
+        .data-btn {
+            flex: 1;
             background: #1e6091;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        .import-btn { background: #2d6a4f; }
+        .schedule-btn {
+            background: #e67e22;
             color: white;
             border: none;
             padding: 12px;
@@ -323,10 +343,12 @@
             from { top: -50px; opacity: 0; }
             to { top: 20px; opacity: 1; }
         }
+        .hidden-input { display: none; }
     </style>
 </head>
 <body>
     <div id="mainApp"></div>
+    <input type="file" id="importFileInput" accept=".json" style="display:none;">
     <script>
         (function(){
             // ==================== البيانات الأساسية ====================
@@ -362,6 +384,52 @@
             function loadSchedule() {
                 let saved = localStorage.getItem('dailySchedule');
                 if(saved) { try{ dailySchedule = JSON.parse(saved); } catch(e){ dailySchedule = []; } }
+            }
+
+            // ==================== التصدير والاستيراد ====================
+            function exportData() {
+                let fullData = {
+                    customers: customers,
+                    dailySchedule: dailySchedule,
+                    exportDate: new Date().toISOString()
+                };
+                let dataStr = JSON.stringify(fullData, null, 2);
+                let blob = new Blob([dataStr], {type: 'application/json'});
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = url;
+                a.download = `moul_khobz_backup_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showAlert('📁 تم تصدير البيانات بنجاح');
+            }
+
+            function importData() {
+                let input = document.getElementById('importFileInput');
+                if(!input) return;
+                input.onchange = function(e) {
+                    let file = e.target.files[0];
+                    if(!file) return;
+                    let reader = new FileReader();
+                    reader.onload = function(evt) {
+                        try {
+                            let imported = JSON.parse(evt.target.result);
+                            if(imported.customers) customers = imported.customers;
+                            if(imported.dailySchedule) dailySchedule = imported.dailySchedule;
+                            saveData();
+                            saveSchedule();
+                            updateDisplay();
+                            showAlert('✅ تم استيراد البيانات بنجاح');
+                        } catch(err) {
+                            showAlert('❌ فشل الاستيراد: الملف غير صالح');
+                        }
+                        input.value = '';
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
             }
 
             // ==================== البرنامج اليومي ====================
@@ -591,6 +659,10 @@
             function showMainApp() {
                 let html = `<div class="app-container">
                     <div class="header"><h1>🍞 مول الخبز</h1><p>تطبيق إدارة وتوزيع الخبز الذكي</p></div>
+                    <div class="data-buttons">
+                        <button class="data-btn" onclick="exportData()">📤 تصدير البيانات</button>
+                        <button class="data-btn import-btn" onclick="importData()">📥 استيراد بيانات</button>
+                    </div>
                     <button class="schedule-btn" onclick="requestNotifPermission(); showScheduleModal();">📋 البرنامج اليومي (مواعيد ثابتة)</button>
                     <div class="phone-banner">📞 عبدالرزاق<span>0605062609</span></div>
                     <div class="total-card"><h3>📊 إجمالي الوحدات الموزعة اليوم</h3><div class="total-value" id="totalBread">0</div><p style="font-size:12px;margin-top:5px;">وحدة</p></div>
@@ -618,6 +690,8 @@
             window.clearAllSchedule = clearAllSchedule;
             window.requestNotifPermission = requestNotifPermission;
             window.showAlert = showAlert;
+            window.exportData = exportData;
+            window.importData = importData;
 
             // ==================== بدء التشغيل ====================
             loadData();
