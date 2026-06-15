@@ -486,7 +486,7 @@
                 });
             }
 
-            // ==================== صفحة الزبون (مستقلة، بدون أزرار إدارة) ====================
+            // ==================== صفحة الزبون (بدون زر رجوع) ====================
             function showCustomerView(customerName) {
                 let customer = customers.find(c => c.name === customerName);
                 if (!customer) {
@@ -494,7 +494,7 @@
                     <html lang="ar" dir="rtl">
                     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>الزبون غير موجود</title>
                     <style>body{font-family:'Tahoma';background:#1a472a;padding:20px;text-align:center;} .card{background:white;max-width:400px;margin:0 auto;border-radius:20px;padding:40px;} button{background:#2d6a4f;color:white;border:none;padding:12px 20px;border-radius:10px;margin-top:20px;}</style>
-                    </head><body><div class="card"><h2>⚠️ لا يوجد زبون بهذا الاسم</h2><p>الرجاء التأكد من الرابط أو التواصل مع المدير</p><a href="${getBaseUrl()}" style="background:#2d6a4f;color:white;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block;margin-top:20px;">🏠 العودة للرئيسية</a></div></body></html>`;
+                    </head><body><div class="card"><h2>⚠️ لا يوجد زبون بهذا الاسم</h2><p>الرجاء التأكد من الرابط أو التواصل مع المدير</p></div></body></html>`;
                 }
                 let customerTotal = customer.payments.reduce((s, p) => s + p.amount, 0);
                 let paymentsHtml = '';
@@ -528,7 +528,6 @@
                         .payment-log-item .time{color:#6c757d;}
                         .payment-log-item .amount{font-weight:bold;color:#2d6a4f;}
                         .empty-log{text-align:center;color:#adb5bd;font-size:12px;padding:8px;}
-                        .back-home{display:block;background:#2d6a4f;color:white;text-align:center;padding:12px;text-decoration:none;margin:15px;border-radius:10px;font-weight:bold;}
                         .footer{background:#1a472a;color:white;text-align:center;padding:15px;font-size:12px;}
                         .footer .phone{font-size:16px;font-weight:bold;margin-top:5px;}
                     </style>
@@ -550,7 +549,6 @@
                                 ${paymentsHtml}
                             </div>
                         </div>
-                        <a href="${getBaseUrl()}" class="back-home">🏠 العودة للصفحة الرئيسية</a>
                         <div class="footer">
                             📞 للتواصل من أجل الإعلانات
                             <div class="phone">0605062609</div>
