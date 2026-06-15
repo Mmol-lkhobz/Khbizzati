@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>مول الخبز - إدارة وتوزيع ذكي</title>
+    <title>مول الخبز - الإدارة والفواتير</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -29,25 +29,29 @@
         .header h1 { font-size: 22px; margin-bottom: 5px; }
         .header p { font-size: 12px; opacity: 0.8; }
 
-        /* أزرار التصدير والاستيراد */
-        .data-buttons {
+        /* فلتر */
+        .filter-buttons {
             display: flex;
             gap: 10px;
             margin: 15px 15px 0 15px;
         }
-        .data-btn {
+        .filter-btn {
             flex: 1;
-            background: #1e6091;
-            color: white;
+            background: #e9ecef;
+            color: #2d6a4f;
             border: none;
-            padding: 12px;
+            padding: 10px;
             border-radius: 12px;
             font-size: 14px;
             font-weight: bold;
             cursor: pointer;
-            text-align: center;
+            transition: 0.3s;
         }
-        .import-btn { background: #2d6a4f; }
+        .filter-btn.active {
+            background: #2d6a4f;
+            color: white;
+        }
+
         .schedule-btn {
             background: #e67e22;
             color: white;
@@ -243,13 +247,15 @@
             gap: 8px;
         }
         .customer-name { font-size: 18px; font-weight: bold; color: #2d6a4f; }
-        .customer-total {
+        .customer-status {
             background: #e9ecef;
             padding: 5px 12px;
             border-radius: 20px;
-            font-weight: bold;
-            color: #2d6a4f;
+            font-size: 12px;
+            cursor: pointer;
         }
+        .customer-status.paid { background: #2d6a4f; color: white; }
+        .customer-status.unpaid { background: #e63946; color: white; }
         .payment-row { display: flex; gap: 10px; margin-bottom: 12px; }
         .payment-row input {
             flex: 1;
@@ -286,9 +292,9 @@
         .payment-log-item .amount { font-weight: bold; color: #2d6a4f; }
         .empty-log { text-align: center; color: #adb5bd; font-size: 12px; padding: 8px; }
         .customer-buttons { display: flex; gap: 10px; }
-        .delete-customer-btn {
+        .invoice-btn {
             flex: 1;
-            background: #e63946;
+            background: #1e6091;
             color: white;
             border: none;
             padding: 10px;
@@ -296,9 +302,9 @@
             cursor: pointer;
             font-size: 14px;
         }
-        .copy-link-btn {
+        .delete-customer-btn {
             flex: 1;
-            background: #1e6091;
+            background: #e63946;
             color: white;
             border: none;
             padding: 10px;
@@ -343,17 +349,22 @@
             from { top: -50px; opacity: 0; }
             to { top: 20px; opacity: 1; }
         }
-        .hidden-input { display: none; }
+        /* صفحة الطباعة */
+        @media print {
+            body * { visibility: hidden; }
+            .print-area, .print-area * { visibility: visible; }
+            .print-area { position: absolute; top: 0; right: 0; width: 100%; }
+        }
     </style>
 </head>
 <body>
     <div id="mainApp"></div>
-    <input type="file" id="importFileInput" accept=".json" style="display:none;">
     <script>
         (function(){
             // ==================== البيانات الأساسية ====================
             let customers = [];
             let dailySchedule = [];
+            let currentFilter = 'all'; // all, paid, unpaid
 
             // ==================== دوال مساعدة ====================
             function showAlert(msg) {
@@ -379,6 +390,8 @@
             function loadData() {
                 let saved = localStorage.getItem('moulBreadData');
                 if(saved) { try{ customers = JSON.parse(saved); } catch(e){ customers = []; } }
+                // إضافة حقل isPaid للزبائن القديمين
+                customers.forEach(c => { if(c.isPaid === undefined) c.isPaid = false; });
             }
             function saveSchedule() { localStorage.setItem('dailySchedule', JSON.stringify(dailySchedule)); }
             function loadSchedule() {
@@ -386,50 +399,98 @@
                 if(saved) { try{ dailySchedule = JSON.parse(saved); } catch(e){ dailySchedule = []; } }
             }
 
-            // ==================== التصدير والاستيراد ====================
-            function exportData() {
-                let fullData = {
-                    customers: customers,
-                    dailySchedule: dailySchedule,
-                    exportDate: new Date().toISOString()
-                };
-                let dataStr = JSON.stringify(fullData, null, 2);
-                let blob = new Blob([dataStr], {type: 'application/json'});
-                let url = URL.createObjectURL(blob);
-                let a = document.createElement('a');
-                a.href = url;
-                a.download = `moul_khobz_backup_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showAlert('📁 تم تصدير البيانات بنجاح');
+            // ==================== الفلتر ====================
+            function setFilter(filter) {
+                currentFilter = filter;
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    if(btn.getAttribute('data-filter') === filter) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+                applyFilter();
+            }
+            function applyFilter() {
+                let cards = document.querySelectorAll('.customer-card');
+                cards.forEach(card => {
+                    let status = card.getAttribute('data-status');
+                    if(currentFilter === 'all') card.classList.remove('hidden');
+                    else if(currentFilter === 'paid' && status === 'paid') card.classList.remove('hidden');
+                    else if(currentFilter === 'unpaid' && status === 'unpaid') card.classList.remove('hidden');
+                    else card.classList.add('hidden');
+                });
+            }
+            function togglePaidStatus(customerId) {
+                let customer = customers.find(c => c.id == customerId);
+                if(customer) {
+                    customer.isPaid = !customer.isPaid;
+                    saveData();
+                    updateDisplay();
+                    showAlert(customer.isPaid ? `✅ ${customer.name} خالص` : `⚠️ ${customer.name} غير خالص`);
+                }
             }
 
-            function importData() {
-                let input = document.getElementById('importFileInput');
-                if(!input) return;
-                input.onchange = function(e) {
-                    let file = e.target.files[0];
-                    if(!file) return;
-                    let reader = new FileReader();
-                    reader.onload = function(evt) {
-                        try {
-                            let imported = JSON.parse(evt.target.result);
-                            if(imported.customers) customers = imported.customers;
-                            if(imported.dailySchedule) dailySchedule = imported.dailySchedule;
-                            saveData();
-                            saveSchedule();
-                            updateDisplay();
-                            showAlert('✅ تم استيراد البيانات بنجاح');
-                        } catch(err) {
-                            showAlert('❌ فشل الاستيراد: الملف غير صالح');
-                        }
-                        input.value = '';
-                    };
-                    reader.readAsText(file);
-                };
-                input.click();
+            // ==================== الفاتورة والطباعة ====================
+            function printInvoice(customerId) {
+                let customer = customers.find(c => c.id == customerId);
+                if(!customer) return;
+                
+                let total = customer.payments.reduce((s,p) => s + p.amount, 0);
+                let paymentsHtml = '';
+                if(customer.payments.length > 0) {
+                    let reversed = [...customer.payments].reverse();
+                    for(let p of reversed) {
+                        paymentsHtml += `<tr><td>${p.time}</td><td>${p.amount} وحدة</td></tr>`;
+                    }
+                } else {
+                    paymentsHtml = '<tr><td colspan="2" style="text-align:center">لا توجد طلبات</td></tr>';
+                }
+                
+                let printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html dir="rtl">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>فاتورة ${escapeHtml(customer.name)}</title>
+                        <style>
+                            body { font-family: 'Tahoma', Arial, sans-serif; padding: 20px; }
+                            .invoice { max-width: 400px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 15px; }
+                            .header { text-align: center; border-bottom: 2px solid #2d6a4f; padding-bottom: 10px; margin-bottom: 20px; }
+                            .header h1 { color: #2d6a4f; margin: 0; }
+                            .customer-name { font-size: 24px; font-weight: bold; color: #2d6a4f; text-align: center; margin: 20px 0; }
+                            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                            th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+                            th { background: #2d6a4f; color: white; }
+                            .total { font-size: 18px; font-weight: bold; text-align: center; margin-top: 20px; padding-top: 10px; border-top: 2px solid #2d6a4f; }
+                            .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+                            @media print {
+                                button { display: none; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="invoice">
+                            <div class="header">
+                                <h1>🍞 مول الخبز</h1>
+                                <p>فاتورة العميل</p>
+                            </div>
+                            <div class="customer-name">${escapeHtml(customer.name)}</div>
+                            <table>
+                                <tr><th>الوقت</th><th>الكمية</th></tr>
+                                ${paymentsHtml}
+                            </table>
+                            <div class="total">📊 الإجمالي: ${total} وحدة</div>
+                            <div class="footer">
+                                📞 للتواصل: 0605062609<br>
+                                تاريخ الفاتورة: ${new Date().toLocaleDateString('ar')}
+                            </div>
+                        </div>
+                        <div style="text-align:center; margin-top:20px;">
+                            <button onclick="window.print(); setTimeout(()=>window.close(), 500);">🖨️ طباعة الفاتورة</button>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
             }
 
             // ==================== البرنامج اليومي ====================
@@ -492,13 +553,13 @@
                 });
             }
 
-            // ==================== دوال الإدارة (للمالك فقط) ====================
+            // ==================== دوال الإدارة ====================
             function addCustomer() {
                 let input = document.getElementById('customerName');
                 let name = input.value.trim();
                 if(!name) { showAlert('الرجاء إدخال اسم الزبون'); return; }
                 if(customers.some(c=>c.name===name)) { showAlert('الزبون موجود بالفعل'); return; }
-                customers.push({ id: Date.now(), name: name, payments: [] });
+                customers.push({ id: Date.now(), name: name, payments: [], isPaid: false });
                 input.value = '';
                 saveData();
                 updateDisplay();
@@ -529,10 +590,6 @@
                     showAlert(`تم حذف ${cust.name} 🗑️`);
                 }
             }
-            function copyLink(cid, name) {
-                let link = getBaseUrl() + '?customer=' + encodeURIComponent(name);
-                navigator.clipboard.writeText(link).then(()=>showAlert(`📋 تم نسخ رابط ${name}`)).catch(()=>showAlert('فشل النسخ'));
-            }
             function startNewDay() {
                 if(customers.length===0) { showAlert('لا توجد بيانات'); return; }
                 let total = customers.reduce((s,c)=>s+c.payments.reduce((s2,p)=>s2+p.amount,0),0);
@@ -552,16 +609,17 @@
                     if(txt==='' || name.includes(txt)) card.classList.remove('hidden');
                     else card.classList.add('hidden');
                 });
+                applyFilter();
             }
 
-            // ==================== صفحة الزبون (بدون زر رجوع) ====================
+            // ==================== صفحة الزبون ====================
             function showCustomerView(customerName) {
                 let customer = customers.find(c => c.name === customerName);
                 if (!customer) {
                     return `<!DOCTYPE html>
                     <html lang="ar" dir="rtl">
                     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>الزبون غير موجود</title>
-                    <style>body{font-family:'Tahoma';background:#1a472a;padding:20px;text-align:center;} .card{background:white;max-width:400px;margin:0 auto;border-radius:20px;padding:40px;} button{background:#2d6a4f;color:white;border:none;padding:12px 20px;border-radius:10px;margin-top:20px;}</style>
+                    <style>body{font-family:'Tahoma';background:#1a472a;padding:20px;text-align:center;} .card{background:white;max-width:400px;margin:0 auto;border-radius:20px;padding:40px;}</style>
                     </head><body><div class="card"><h2>⚠️ لا يوجد زبون بهذا الاسم</h2><p>الرجاء التأكد من الرابط أو التواصل مع المدير</p></div></body></html>`;
                 }
                 let customerTotal = customer.payments.reduce((s, p) => s + p.amount, 0);
@@ -602,31 +660,19 @@
                 </head>
                 <body>
                     <div class="customer-view-page">
-                        <div class="header">
-                            <h1>🍞 مول الخبز</h1>
-                            <p>سجل الخبز الخاص بك</p>
-                        </div>
+                        <div class="header"><h1>🍞 مول الخبز</h1><p>سجل الخبز الخاص بك</p></div>
                         <div class="customer-view-card">
                             <div class="customer-view-name">${escapeHtml(customer.name)}</div>
-                            <div class="customer-view-total">
-                                <div>📊 إجمالي الوحدات</div>
-                                <span>${customerTotal}</span>
-                                <div>وحدة</div>
-                            </div>
-                            <div class="payments-log">
-                                ${paymentsHtml}
-                            </div>
+                            <div class="customer-view-total"><div>📊 إجمالي الوحدات</div><span>${customerTotal}</span><div>وحدة</div></div>
+                            <div class="payments-log">${paymentsHtml}</div>
                         </div>
-                        <div class="footer">
-                            📞 للتواصل من أجل الإعلانات
-                            <div class="phone">0605062609</div>
-                        </div>
+                        <div class="footer">📞 للتواصل من أجل الإعلانات<div class="phone">0605062609</div></div>
                     </div>
                 </body>
                 </html>`;
             }
 
-            // ==================== عرض واجهة الإدارة (للمالك فقط) ====================
+            // ==================== عرض واجهة الإدارة ====================
             function updateDisplay() {
                 let total = customers.reduce((s,c)=>s+c.payments.reduce((s2,p)=>s2+p.amount,0),0);
                 let totalEl = document.getElementById('totalBread');
@@ -645,24 +691,34 @@
                         let rev = [...c.payments].reverse();
                         for(let p of rev) logs += `<div class="payment-log-item"><span class="time">⏰ ${p.time}</span><span class="amount">🍞 ${p.amount} وحدة</span></div>`;
                     } else { logs = '<div class="empty-log">لا توجد طلبات بعد</div>'; }
-                    html += `<div class="customer-card">
-                        <div class="customer-row"><span class="customer-name">${escapeHtml(c.name)}</span><span class="customer-total">${custTotal} وحدة</span></div>
+                    html += `<div class="customer-card" data-status="${c.isPaid ? 'paid' : 'unpaid'}">
+                        <div class="customer-row">
+                            <span class="customer-name">${escapeHtml(c.name)}</span>
+                            <span class="customer-status ${c.isPaid ? 'paid' : 'unpaid'}" onclick="togglePaidStatus(${c.id})">${c.isPaid ? '✅ خالص' : '⚠️ غير خالص'}</span>
+                        </div>
                         <div class="payment-row"><input type="number" data-payment-input="${c.id}" placeholder="عدد الوحدات" onkeypress="if(event.key=='Enter') addPayment(${c.id})"><button onclick="addPayment(${c.id})">➕ إضافة</button></div>
                         <div class="payments-log">${logs}</div>
-                        <div class="customer-buttons"><button class="copy-link-btn" onclick="copyLink(${c.id},'${escapeHtml(c.name).replace(/'/g,"\\'")}')">📋 نسخ الرابط</button><button class="delete-customer-btn" onclick="deleteCustomer(${c.id})">🗑️ حذف الزبون</button></div>
+                        <div class="customer-buttons">
+                            <button class="invoice-btn" onclick="printInvoice(${c.id})">🧾 فاتورة</button>
+                            <button class="delete-customer-btn" onclick="deleteCustomer(${c.id})">🗑️ حذف الزبون</button>
+                        </div>
                     </div>`;
                 }
                 container.innerHTML = html;
                 searchCustomers();
+                applyFilter();
             }
 
             function showMainApp() {
                 let html = `<div class="app-container">
                     <div class="header"><h1>🍞 مول الخبز</h1><p>تطبيق إدارة وتوزيع الخبز الذكي</p></div>
-                    <div class="data-buttons">
-                        <button class="data-btn" onclick="exportData()">📤 تصدير البيانات</button>
-                        <button class="data-btn import-btn" onclick="importData()">📥 استيراد بيانات</button>
+                    
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">📋 كل الزبائن</button>
+                        <button class="filter-btn" data-filter="paid" onclick="setFilter('paid')">✅ خالص</button>
+                        <button class="filter-btn" data-filter="unpaid" onclick="setFilter('unpaid')">⚠️ غير خالص</button>
                     </div>
+                    
                     <button class="schedule-btn" onclick="requestNotifPermission(); showScheduleModal();">📋 البرنامج اليومي (مواعيد ثابتة)</button>
                     <div class="phone-banner">📞 عبدالرزاق<span>0605062609</span></div>
                     <div class="total-card"><h3>📊 إجمالي الوحدات الموزعة اليوم</h3><div class="total-value" id="totalBread">0</div><p style="font-size:12px;margin-top:5px;">وحدة</p></div>
@@ -682,7 +738,6 @@
             // ==================== ربط الدوال للنافذة ====================
             window.addPayment = addPayment;
             window.deleteCustomer = deleteCustomer;
-            window.copyLink = copyLink;
             window.searchCustomers = searchCustomers;
             window.showScheduleModal = showScheduleModal;
             window.addToSchedule = addToSchedule;
@@ -690,8 +745,9 @@
             window.clearAllSchedule = clearAllSchedule;
             window.requestNotifPermission = requestNotifPermission;
             window.showAlert = showAlert;
-            window.exportData = exportData;
-            window.importData = importData;
+            window.printInvoice = printInvoice;
+            window.togglePaidStatus = togglePaidStatus;
+            window.setFilter = setFilter;
 
             // ==================== بدء التشغيل ====================
             loadData();
