@@ -367,6 +367,146 @@
     <div id="mainApp"></div>
     <script>
         (function(){
+            // ==================== المؤثرات الصوتية (توليد أصوات برمجياً) ====================
+            function playSound(type) {
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    switch(type) {
+                        case 'success':
+                            // صوت نجاح: نغمتان متتاليتان
+                            [523, 659].forEach((freq, i) => {
+                                setTimeout(() => {
+                                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                    const osc = ctx.createOscillator();
+                                    const gain = ctx.createGain();
+                                    osc.connect(gain);
+                                    gain.connect(ctx.destination);
+                                    osc.frequency.value = freq;
+                                    osc.type = 'sine';
+                                    gain.gain.value = 0.2;
+                                    osc.start(ctx.currentTime);
+                                    osc.stop(ctx.currentTime + 0.15);
+                                }, i * 150);
+                            });
+                            break;
+                            
+                        case 'error':
+                            // صوت خطأ: نغمة منخفضة
+                            const ctxErr = new (window.AudioContext || window.webkitAudioContext)();
+                            const oscErr = ctxErr.createOscillator();
+                            const gainErr = ctxErr.createGain();
+                            oscErr.connect(gainErr);
+                            gainErr.connect(ctxErr.destination);
+                            oscErr.frequency.value = 200;
+                            oscErr.type = 'sawtooth';
+                            gainErr.gain.value = 0.15;
+                            oscErr.start(ctxErr.currentTime);
+                            oscErr.stop(ctxErr.currentTime + 0.4);
+                            break;
+                            
+                        case 'coin':
+                            // صوت عملة: نغمة متزايدة
+                            const ctxCoin = new (window.AudioContext || window.webkitAudioContext)();
+                            const oscCoin = ctxCoin.createOscillator();
+                            const gainCoin = ctxCoin.createGain();
+                            oscCoin.connect(gainCoin);
+                            gainCoin.connect(ctxCoin.destination);
+                            oscCoin.frequency.setValueAtTime(600, ctxCoin.currentTime);
+                            oscCoin.frequency.linearRampToValueAtTime(1200, ctxCoin.currentTime + 0.1);
+                            oscCoin.type = 'sine';
+                            gainCoin.gain.value = 0.15;
+                            oscCoin.start(ctxCoin.currentTime);
+                            oscCoin.stop(ctxCoin.currentTime + 0.12);
+                            break;
+                            
+                        case 'print':
+                            // صوت طابعة: نقرات سريعة
+                            for(let i = 0; i < 6; i++) {
+                                setTimeout(() => {
+                                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                    const osc = ctx.createOscillator();
+                                    const gain = ctx.createGain();
+                                    osc.connect(gain);
+                                    gain.connect(ctx.destination);
+                                    osc.frequency.value = 800 + Math.random() * 400;
+                                    osc.type = 'square';
+                                    gain.gain.value = 0.08;
+                                    osc.start(ctx.currentTime);
+                                    osc.stop(ctx.currentTime + 0.03);
+                                }, i * 60);
+                            }
+                            break;
+                            
+                        case 'delete':
+                            // صوت حذف: نغمة تنازلية
+                            const ctxDel = new (window.AudioContext || window.webkitAudioContext)();
+                            const oscDel = ctxDel.createOscillator();
+                            const gainDel = ctxDel.createGain();
+                            oscDel.connect(gainDel);
+                            gainDel.connect(ctxDel.destination);
+                            oscDel.frequency.setValueAtTime(400, ctxDel.currentTime);
+                            oscDel.frequency.linearRampToValueAtTime(100, ctxDel.currentTime + 0.3);
+                            oscDel.type = 'sawtooth';
+                            gainDel.gain.value = 0.15;
+                            oscDel.start(ctxDel.currentTime);
+                            oscDel.stop(ctxDel.currentTime + 0.3);
+                            break;
+                            
+                        case 'reminder':
+                            // صوت تنبيه: ثلاث نغمات متقطعة
+                            [880, 880, 880].forEach((freq, i) => {
+                                setTimeout(() => {
+                                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                    const osc = ctx.createOscillator();
+                                    const gain = ctx.createGain();
+                                    osc.connect(gain);
+                                    gain.connect(ctx.destination);
+                                    osc.frequency.value = freq;
+                                    osc.type = 'square';
+                                    gain.gain.value = 0.12;
+                                    osc.start(ctx.currentTime);
+                                    osc.stop(ctx.currentTime + 0.08);
+                                }, i * 250);
+                            });
+                            break;
+                            
+                        case 'newday':
+                            // صوت يوم جديد: سلم موسيقي تصاعدي
+                            [523, 587, 659, 784].forEach((freq, i) => {
+                                setTimeout(() => {
+                                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                    const osc = ctx.createOscillator();
+                                    const gain = ctx.createGain();
+                                    osc.connect(gain);
+                                    gain.connect(ctx.destination);
+                                    osc.frequency.value = freq;
+                                    osc.type = 'sine';
+                                    gain.gain.value = 0.15;
+                                    osc.start(ctx.currentTime);
+                                    osc.stop(ctx.currentTime + 0.12);
+                                }, i * 120);
+                            });
+                            break;
+                            
+                        default:
+                            // صوت افتراضي
+                            const ctxDef = new (window.AudioContext || window.webkitAudioContext)();
+                            const oscDef = ctxDef.createOscillator();
+                            const gainDef = ctxDef.createGain();
+                            oscDef.connect(gainDef);
+                            gainDef.connect(ctxDef.destination);
+                            oscDef.frequency.value = 440;
+                            oscDef.type = 'sine';
+                            gainDef.gain.value = 0.1;
+                            oscDef.start(ctxDef.currentTime);
+                            oscDef.stop(ctxDef.currentTime + 0.1);
+                    }
+                } catch(e) {
+                    console.log('الصوت غير مدعوم في هذا المتصفح');
+                }
+            }
+
             // ==================== البيانات الأساسية ====================
             let customers = [];
             let dailySchedule = [];
@@ -384,11 +524,6 @@
                 let d = document.createElement('div');
                 d.textContent = t;
                 return d.innerHTML;
-            }
-            function getBaseUrl() {
-                let path = window.location.pathname;
-                let base = window.location.origin + path.substring(0, path.lastIndexOf('/')+1);
-                return base;
             }
 
             // ==================== حفظ وتحميل البيانات ====================
@@ -429,7 +564,13 @@
                     customer.isPaid = !customer.isPaid;
                     saveData();
                     updateDisplay();
-                    showAlert(customer.isPaid ? `✅ ${customer.name} خالص` : `⚠️ ${customer.name} غير خالص`);
+                    if (customer.isPaid) {
+                        playSound('success');
+                        showAlert(`✅ ${customer.name} خالص`);
+                    } else {
+                        playSound('error');
+                        showAlert(`⚠️ ${customer.name} غير خالص`);
+                    }
                 }
             }
 
@@ -437,6 +578,8 @@
             function printInvoice(customerId) {
                 let customer = customers.find(c => c.id == customerId);
                 if(!customer) return;
+                
+                playSound('print');
                 
                 let total = customer.payments.reduce((s,p) => s + p.amount, 0);
                 let paymentsHtml = '';
@@ -511,17 +654,25 @@
                 dailySchedule.push({ id: Date.now(), name: name, amount: parseInt(amount), time: time });
                 saveSchedule();
                 showScheduleModal();
+                playSound('success');
                 showAlert(`✅ تم إضافة ${name}`);
             }
             function deleteFromSchedule(id) {
                 dailySchedule = dailySchedule.filter(s => s.id != id);
                 saveSchedule();
                 showScheduleModal();
+                playSound('delete');
                 showAlert('🗑️ تم الحذف');
             }
             function clearAllSchedule() {
                 if(dailySchedule.length===0) { showAlert('لا توجد بيانات'); return; }
-                if(confirm('⚠️ مسح كل البرنامج اليومي؟')) { dailySchedule = []; saveSchedule(); showScheduleModal(); showAlert('✅ تم المسح'); }
+                if(confirm('⚠️ مسح كل البرنامج اليومي؟')) { 
+                    dailySchedule = []; 
+                    saveSchedule(); 
+                    showScheduleModal();
+                    playSound('delete');
+                    showAlert('✅ تم المسح'); 
+                }
             }
             function requestNotifPermission() {
                 if(!("Notification" in window)) { showAlert("المتصفح لا يدعم الإشعارات"); return; }
@@ -538,6 +689,7 @@
                         let lastNotif = localStorage.getItem(`reminder_${item.id}_${now.toDateString()}`);
                         if(!lastNotif) {
                             localStorage.setItem(`reminder_${item.id}_${now.toDateString()}`, 'sent');
+                            playSound('reminder');
                             if(Notification.permission==='granted') new Notification(`🔔 تذكير: ${item.name}`, { body: `${item.amount} وحدة - ${item.time}` });
                             showAlert(`🔔 تذكير: ${item.name} - ${item.amount} وحدة الساعة ${item.time}`);
                         }
@@ -555,6 +707,7 @@
                 input.value = '';
                 saveData();
                 updateDisplay();
+                playSound('success');
                 showAlert(`تم إضافة ${name} ✅`);
             }
             function addPayment(cid) {
@@ -570,6 +723,7 @@
                 input.value = '';
                 saveData();
                 updateDisplay();
+                playSound('coin');
                 showAlert(`تم إضافة ${amount} وحدة ✅`);
             }
             function deleteCustomer(cid) {
@@ -579,6 +733,7 @@
                     customers = customers.filter(c=>c.id!=cid);
                     saveData();
                     updateDisplay();
+                    playSound('delete');
                     showAlert(`تم حذف ${cust.name} 🗑️`);
                 }
             }
@@ -589,6 +744,7 @@
                     customers = [];
                     saveData();
                     updateDisplay();
+                    playSound('newday');
                     showAlert('تم بدء يوم جديد 🎉');
                 }
             }
