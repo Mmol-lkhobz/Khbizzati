@@ -412,7 +412,7 @@
             font-weight: bold;
         }
 
-        /* ===== تنسيق الفاتورة للطباعة - أبيض وأسود بسيط ===== */
+        /* ===== تنسيق الفاتورة لطابعة 58 مم ===== */
         @media print {
             body * { visibility: hidden; }
             .print-area, .print-area * { visibility: visible; }
@@ -433,43 +433,24 @@
     <div id="mainApp"></div>
     <script>
         (function(){
-            // ==================== المؤثرات الصوتية (محسنة) ====================
+            // ==================== المؤثرات الصوتية ====================
             function playSound(type) {
                 try {
-                    // محاولة استخدام Web Audio API (يعمل على جميع المتصفحات الحديثة)
                     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    
-                    // إذا كان الصوت مكتوماً، نفتحه
                     if (audioCtx.state === 'suspended') {
                         audioCtx.resume();
                     }
-                    
                     const oscillator = audioCtx.createOscillator();
                     const gainNode = audioCtx.createGain();
-                    
                     oscillator.connect(gainNode);
                     gainNode.connect(audioCtx.destination);
-                    
                     let frequency = 440;
                     let duration = 0.15;
                     let volume = 0.2;
-                    
                     switch(type) {
-                        case 'success':
-                            frequency = 523;
-                            duration = 0.2;
-                            break;
-                        case 'error':
-                            frequency = 200;
-                            duration = 0.3;
-                            volume = 0.15;
-                            break;
-                        case 'coin':
-                            frequency = 800;
-                            duration = 0.1;
-                            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
-                            oscillator.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-                            break;
+                        case 'success': frequency = 523; duration = 0.2; break;
+                        case 'error': frequency = 200; duration = 0.3; volume = 0.15; break;
+                        case 'coin': frequency = 800; duration = 0.1; oscillator.frequency.setValueAtTime(600, audioCtx.currentTime); oscillator.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.1); break;
                         case 'print':
                             for(let i = 0; i < 4; i++) {
                                 setTimeout(() => {
@@ -487,12 +468,7 @@
                                 }, i * 50);
                             }
                             return;
-                        case 'delete':
-                            frequency = 300;
-                            duration = 0.25;
-                            oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
-                            oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.25);
-                            break;
+                        case 'delete': frequency = 300; duration = 0.25; oscillator.frequency.setValueAtTime(300, audioCtx.currentTime); oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.25); break;
                         case 'reminder':
                             for(let i = 0; i < 3; i++) {
                                 setTimeout(() => {
@@ -527,20 +503,14 @@
                                 }, i * 120);
                             });
                             return;
-                        default:
-                            frequency = 440;
-                            duration = 0.1;
+                        default: frequency = 440; duration = 0.1;
                     }
-                    
                     oscillator.frequency.value = frequency;
                     oscillator.type = 'sine';
                     gainNode.gain.value = volume;
-                    
                     oscillator.start(audioCtx.currentTime);
                     oscillator.stop(audioCtx.currentTime + duration);
-                    
                 } catch(e) {
-                    // إذا فشل الصوت، نتجاهل الخطأ (لا نعرض رسالة)
                     console.log('Sound not supported');
                 }
             }
@@ -612,7 +582,7 @@
                 }
             }
 
-            // ==================== الفاتورة والطباعة ====================
+            // ==================== الفاتورة لطابعة 58 مم ====================
             function printInvoice(customerId) {
                 let customer = customers.find(c => c.id == customerId);
                 if(!customer) return;
@@ -624,44 +594,148 @@
                 if(customer.payments.length > 0) {
                     let reversed = [...customer.payments].reverse();
                     for(let p of reversed) {
-                        paymentsHtml += `<tr><td style="border:1px solid #000;padding:5px 8px;text-align:center;font-weight:300;">${p.time}</td><td style="border:1px solid #000;padding:5px 8px;text-align:center;font-weight:300;">${p.amount} وحدة</td></tr>`;
+                        paymentsHtml += `<tr><td style="border:1px solid #000;padding:3px 4px;text-align:center;font-weight:bold;font-size:13px;">${p.time}</td><td style="border:1px solid #000;padding:3px 4px;text-align:center;font-weight:bold;font-size:13px;">${p.amount}</td></tr>`;
                     }
                 } else {
-                    paymentsHtml = '<tr><td colspan="2" style="border:1px solid #000;padding:5px 8px;text-align:center;font-weight:300;">لا توجد طلبات</td></tr>';
+                    paymentsHtml = '<tr><td colspan="2" style="border:1px solid #000;padding:3px 4px;text-align:center;font-weight:bold;font-size:13px;">لا توجد طلبات</td></tr>';
                 }
                 
                 let today = new Date();
-                let dateStr = today.toLocaleDateString('ar', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                let dateStr = today.toLocaleDateString('ar', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
                 
-                let printWindow = window.open('', '_blank');
+                let printWindow = window.open('', '_blank', 'width=400,height=500');
                 printWindow.document.write(`
                     <!DOCTYPE html>
                     <html dir="rtl">
                     <head>
                         <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <title>فاتورة ${escapeHtml(customer.name)}</title>
                         <style>
-                            body { font-family: 'Tahoma', 'Arial', sans-serif; padding: 20px; background: white; color: black; }
-                            .invoice { max-width: 380px; margin: 0 auto; border: 1px solid #000; padding: 18px 15px; }
-                            .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 12px; }
-                            .header h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
-                            .header p { font-size: 11px; margin: 2px 0; font-weight: 300; }
-                            .date { text-align: center; font-size: 13px; font-weight: 300; margin-bottom: 8px; color: #333; }
-                            .customer-name { font-size: 24px; font-weight: 400; text-align: center; margin: 8px 0 14px 0; letter-spacing: 0.5px; }
-                            table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-                            th { border: 1px solid #000; padding: 5px 8px; text-align: center; font-weight: 400; background: #f5f5f5; }
-                            td { border: 1px solid #000; padding: 5px 8px; text-align: center; font-weight: 300; }
-                            .total { font-size: 18px; font-weight: 400; text-align: center; margin-top: 12px; padding-top: 8px; border-top: 2px solid #000; letter-spacing: 0.5px; }
-                            .footer { text-align: center; margin-top: 16px; font-size: 13px; border-top: 1px solid #000; padding-top: 10px; }
-                            .footer .phone { font-size: 20px; font-weight: 300; letter-spacing: 1px; }
-                            .print-btn { display: block; margin: 15px auto; padding: 8px 20px; background: #111; color: white; border: 1px solid #000; border-radius: 6px; cursor: pointer; font-weight: 300; font-size: 14px; }
-                            @media print { .print-btn { display: none; } }
+                            * { margin: 0; padding: 0; box-sizing: border-box; }
+                            body { 
+                                font-family: 'Tahoma', 'Arial', sans-serif; 
+                                padding: 5px; 
+                                background: white; 
+                                color: black;
+                                display: flex;
+                                justify-content: center;
+                            }
+                            .invoice { 
+                                max-width: 200px; /* 58mm = 200px تقريباً */
+                                width: 100%;
+                                margin: 0 auto; 
+                                padding: 6px 4px; 
+                                background: white;
+                                font-size: 13px;
+                            }
+                            .header { 
+                                text-align: center; 
+                                border-bottom: 2px solid #000; 
+                                padding-bottom: 4px; 
+                                margin-bottom: 6px; 
+                            }
+                            .header h1 { 
+                                margin: 0; 
+                                font-size: 18px; 
+                                font-weight: bold; 
+                                letter-spacing: 0.5px; 
+                            }
+                            .header .sub { 
+                                font-size: 11px; 
+                                font-weight: bold;
+                            }
+                            .date { 
+                                text-align: center; 
+                                font-size: 12px; 
+                                font-weight: bold; 
+                                margin-bottom: 4px; 
+                            }
+                            .customer-name { 
+                                font-size: 18px; 
+                                font-weight: bold; 
+                                text-align: center; 
+                                margin: 4px 0 8px 0; 
+                                letter-spacing: 0.5px; 
+                                border-bottom: 1px dashed #000;
+                                padding-bottom: 4px;
+                            }
+                            table { 
+                                width: 100%; 
+                                border-collapse: collapse; 
+                                margin: 4px 0; 
+                            }
+                            th { 
+                                border: 1px solid #000; 
+                                padding: 3px 4px; 
+                                text-align: center; 
+                                font-weight: bold; 
+                                font-size: 12px;
+                                background: #f5f5f5; 
+                            }
+                            td { 
+                                border: 1px solid #000; 
+                                padding: 3px 4px; 
+                                text-align: center; 
+                                font-weight: bold; 
+                                font-size: 13px; 
+                            }
+                            .total { 
+                                font-size: 16px; 
+                                font-weight: bold; 
+                                text-align: center; 
+                                margin-top: 6px; 
+                                padding-top: 4px; 
+                                border-top: 2px solid #000; 
+                                letter-spacing: 0.5px; 
+                            }
+                            .footer { 
+                                text-align: center; 
+                                margin-top: 8px; 
+                                border-top: 1px solid #000; 
+                                padding-top: 4px; 
+                            }
+                            .footer .phone { 
+                                font-size: 16px; 
+                                font-weight: bold; 
+                                letter-spacing: 0.5px; 
+                            }
+                            .footer .thanks {
+                                font-size: 11px;
+                                font-weight: bold;
+                                margin-top: 2px;
+                            }
+                            .print-btn { 
+                                display: block; 
+                                margin: 10px auto; 
+                                padding: 6px 16px; 
+                                background: #111; 
+                                color: white; 
+                                border: 1px solid #000; 
+                                border-radius: 4px; 
+                                cursor: pointer; 
+                                font-weight: bold; 
+                                font-size: 12px; 
+                            }
+                            .print-btn:hover { background: #333; }
+                            
+                            @media print { 
+                                .print-btn { display: none; } 
+                                body { padding: 0; margin: 0; }
+                                .invoice { border: none; padding: 3px 2px; }
+                                .header h1 { font-size: 16px; }
+                                .customer-name { font-size: 16px; }
+                                .total { font-size: 14px; }
+                                .footer .phone { font-size: 14px; }
+                                td, th { padding: 2px 3px; font-size: 11px; }
+                            }
                         </style>
                     </head>
                     <body>
                         <div class="invoice">
                             <div class="header">
                                 <h1>🍞 مول الخبز</h1>
+                                <div class="sub">فاتورة</div>
                             </div>
                             <div class="date">${dateStr}</div>
                             <div class="customer-name">${escapeHtml(customer.name)}</div>
@@ -671,16 +745,24 @@
                                 </thead>
                                 <tbody>${paymentsHtml}</tbody>
                             </table>
-                            <div class="total">الإجمالي: ${total} وحدة</div>
+                            <div class="total">الإجمالي: ${total}</div>
                             <div class="footer">
-                                <div class="phone">0605062609</div>
+                                <div class="phone">📞 0605062609</div>
+                                <div class="thanks">شكراً لثقتكم</div>
                             </div>
                         </div>
-                        <button class="print-btn" onclick="window.print(); setTimeout(()=>window.close(), 600);">🖨️ طباعة الفاتورة</button>
+                        <button class="print-btn" onclick="window.print();">🖨️ طباعة</button>
                     </body>
                     </html>
                 `);
                 printWindow.document.close();
+                
+                setTimeout(function() {
+                    try {
+                        printWindow.focus();
+                        printWindow.print();
+                    } catch(e) {}
+                }, 500);
             }
 
             // ==================== البرنامج اليومي ====================
