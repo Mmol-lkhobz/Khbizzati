@@ -7,7 +7,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
+
+    <!-- ===== Firebase SDK (méthode CDN) ===== -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
     <style>
+        /* ===== STYLES ===== */
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Cairo',sans-serif; background:#f0ebe2; color:#1a1a2e; direction:rtl; padding:16px 12px 40px; min-height:100vh; padding-bottom:100px; }
         .container { max-width:800px; margin:0 auto; }
@@ -115,6 +122,10 @@
         .btn-export:hover { background:#27ae60; transform:scale(1.02); }
         .btn-import { background:#3498db; color:#fff; }
         .btn-import:hover { background:#2980b9; transform:scale(1.02); }
+        .btn-firebase-sync { background:#4285f4; color:#fff; }
+        .btn-firebase-sync:hover { background:#3367d6; transform:scale(1.02); }
+        .btn-firebase-load { background:#34a853; color:#fff; }
+        .btn-firebase-load:hover { background:#2d9249; transform:scale(1.02); }
         .order-card { background:#f8f4ec; border-radius:14px; padding:16px; margin-top:12px; border-right:4px solid #ffd700; transition:0.3s; border:1px solid #ede6da; border-right:4px solid #ffd700; }
         .order-card:hover { background:#f5efe4; }
         .order-card .order-number { font-size:20px; font-weight:900; color:#1a1a2e; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
@@ -202,10 +213,19 @@
         .image-modal-content img { max-width:100%; max-height:90vh; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.5); border:3px solid #ffd700; cursor:default; }
         .image-close { position:absolute; top:-40px; right:0; color:#fff; font-size:32px; font-weight:700; cursor:pointer; transition:0.3s; background:rgba(255,50,50,0.8); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; }
         .image-close:hover { background:#e74c3c; transform:rotate(90deg); }
-        @media(max-width:420px) { .category-buttons { gap:8px; } .cat-btn { padding:12px 4px; border-radius:16px; } .cat-btn .icon { font-size:26px; } .cat-btn .name { font-size:15px; } .cat-btn-other { padding:14px 8px; border-radius:16px; } .cat-btn-other .icon { font-size:24px; } .cat-btn-other .name { font-size:16px; } .modal-box { padding:20px 16px; } .modal-tabs { gap:8px; } .modal-tab { font-size:15px; padding:12px 8px; } .modal-tab .tab-icon { font-size:24px; } .admin-box { padding:20px 16px; } .admin-box .row2 { grid-template-columns:1fr; gap:0; } .logo-text .main { font-size:28px; } .logo-container { width:80px; height:80px; } .logo-container .logo-placeholder { font-size:32px; } .delivery-badge { padding:4px 14px; gap:6px; max-width:280px; } .delivery-badge .label { font-size:12px; } .order-card .order-actions button { min-width:60px; font-size:12px; padding:6px 10px; } .stats-grid { grid-template-columns:1fr 1fr; } .stats-card.full { grid-column:span 2; } .stats-card .number { font-size:22px; } .image-close { top:-35px; width:32px; height:32px; font-size:24px; } .search-box input { font-size:14px; padding:8px 12px 8px 32px; } }
-        @media(max-width:360px) { .category-buttons { grid-template-columns:1fr 1fr; } .cat-btn-other { grid-column:span 2; } .logo-text .main { font-size:22px; } .logo-container { width:70px; height:70px; } .logo-container .logo-placeholder { font-size:28px; } .stats-grid { grid-template-columns:1fr; } .stats-card.full { grid-column:span 1; } .image-close { top:-30px; width:28px; height:28px; font-size:18px; } }
         .storage-warning { display:none; background:#ff6b6b; color:#fff; padding:12px 16px; border-radius:12px; margin-bottom:12px; text-align:center; font-weight:700; border:2px solid #c0392b; }
         .storage-warning .icon { font-size:24px; display:block; margin-bottom:4px; }
+
+        /* Firebase Status */
+        .firebase-status { display:flex; align-items:center; gap:8px; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+        .firebase-status.online { background:#d4edda; color:#155724; }
+        .firebase-status.offline { background:#f8d7da; color:#721c24; }
+        .firebase-status .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+        .firebase-status.online .dot { background:#28a745; }
+        .firebase-status.offline .dot { background:#dc3545; }
+
+        @media(max-width:420px) { .category-buttons { gap:8px; } .cat-btn { padding:12px 4px; border-radius:16px; } .cat-btn .icon { font-size:26px; } .cat-btn .name { font-size:15px; } .cat-btn-other { padding:14px 8px; border-radius:16px; } .cat-btn-other .icon { font-size:24px; } .cat-btn-other .name { font-size:16px; } .modal-box { padding:20px 16px; } .modal-tabs { gap:8px; } .modal-tab { font-size:15px; padding:12px 8px; } .modal-tab .tab-icon { font-size:24px; } .admin-box { padding:20px 16px; } .admin-box .row2 { grid-template-columns:1fr; gap:0; } .logo-text .main { font-size:28px; } .logo-container { width:80px; height:80px; } .logo-container .logo-placeholder { font-size:32px; } .delivery-badge { padding:4px 14px; gap:6px; max-width:280px; } .delivery-badge .label { font-size:12px; } .order-card .order-actions button { min-width:60px; font-size:12px; padding:6px 10px; } .stats-grid { grid-template-columns:1fr 1fr; } .stats-card.full { grid-column:span 2; } .stats-card .number { font-size:22px; } .image-close { top:-35px; width:32px; height:32px; font-size:24px; } .search-box input { font-size:14px; padding:8px 12px 8px 32px; } }
+        @media(max-width:360px) { .category-buttons { grid-template-columns:1fr 1fr; } .cat-btn-other { grid-column:span 2; } .logo-text .main { font-size:22px; } .logo-container { width:70px; height:70px; } .logo-container .logo-placeholder { font-size:28px; } .stats-grid { grid-template-columns:1fr; } .stats-card.full { grid-column:span 1; } .image-close { top:-30px; width:28px; height:28px; font-size:18px; } }
     </style>
 </head>
 <body>
@@ -226,7 +246,14 @@
                     </div>
                     <div class="logo-text"><div class="main">Zoo <span>Order</span></div><div class="sub">🇲🇦 Système de Commandes</div></div>
                 </div>
-                <div class="delivery-badge"><span class="label">🛵 Livraison Rapide</span><span class="heart">❤️</span><span class="label">Avec Amour</span></div>
+                <div class="delivery-badge">
+                    <span class="label">🛵 Livraison Rapide</span>
+                    <span class="heart">❤️</span>
+                    <span class="label">Avec Amour</span>
+                    <span id="firebaseStatus" class="firebase-status offline">
+                        <span class="dot"></span> Firebase
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -274,6 +301,8 @@
                 <button class="btn-export" onclick="exportData()">📤 Exporter</button>
                 <button class="btn-import" onclick="document.getElementById('importFile').click()">📥 Importer</button>
                 <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)" />
+                <button class="btn-firebase-sync" onclick="syncAllData()">🔄 Sync Firebase</button>
+                <button class="btn-firebase-load" onclick="loadAllData()">📥 Load Firebase</button>
             </div>
             <div id="ordersContainer"><div class="empty-orders"><span class="icon">📭</span>Aucune commande</div></div>
         </div>
@@ -345,6 +374,262 @@
     </div>
 
     <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIGURATION (Vos données)
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9kOnDQA5PxBlHSCpznGzXiCEMzrBGvkQ",
+            authDomain: "zoo-order-f8c6b.firebaseapp.com",
+            projectId: "zoo-order-f8c6b",
+            storageBucket: "zoo-order-f8c6b.firebasestorage.app",
+            messagingSenderId: "453836309908",
+            appId: "1:453836309908:web:d4feed0b3178fa5ac4fb81",
+            measurementId: "G-F7YJ98DGGP"
+        };
+
+        // Initialisation de Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ============================================================
+        // ÉTAT DE CONNEXION FIREBASE
+        // ============================================================
+        let firebaseConnected = false;
+
+        function updateFirebaseStatus(connected) {
+            firebaseConnected = connected;
+            const statusEl = document.getElementById('firebaseStatus');
+            if (connected) {
+                statusEl.className = 'firebase-status online';
+                statusEl.innerHTML = '<span class="dot"></span> Firebase ✓';
+            } else {
+                statusEl.className = 'firebase-status offline';
+                statusEl.innerHTML = '<span class="dot"></span> Firebase ✗';
+            }
+        }
+
+        // Tester la connexion Firebase
+        async function testFirebaseConnection() {
+            try {
+                await db.collection('_test').doc('_test').set({ test: true });
+                await db.collection('_test').doc('_test').delete();
+                updateFirebaseStatus(true);
+                console.log('✅ Firebase connecté');
+                return true;
+            } catch (error) {
+                updateFirebaseStatus(false);
+                console.warn('⚠️ Firebase déconnecté:', error.message);
+                return false;
+            }
+        }
+
+        // ============================================================
+        // FONCTIONS FIREBASE - SAUVEGARDE ET CHARGEMENT
+        // ============================================================
+
+        // 📦 Sauvegarder les produits dans Firebase
+        async function saveProductsToFirebase() {
+            try {
+                await db.collection('zooData').doc('products').set(allProducts);
+                console.log('✅ Produits sauvegardés dans Firebase');
+                return true;
+            } catch (error) {
+                console.error('❌ Erreur sauvegarde produits:', error);
+                return false;
+            }
+        }
+
+        // 📦 Charger les produits depuis Firebase
+        async function loadProductsFromFirebase() {
+            try {
+                const doc = await db.collection('zooData').doc('products').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    for (let key in data) {
+                        if (allProducts[key]) {
+                            allProducts[key].foods = data[key].foods || [];
+                            allProducts[key].accessories = data[key].accessories || [];
+                        }
+                    }
+                    console.log('✅ Produits chargés depuis Firebase');
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('❌ Erreur chargement produits:', error);
+                return false;
+            }
+        }
+
+        // 📋 Sauvegarder les commandes dans Firebase
+        async function saveOrdersToFirebase() {
+            try {
+                await db.collection('zooData').doc('orders').set({
+                    orders: orders,
+                    refCounter: refCounter
+                });
+                console.log('✅ Commandes sauvegardées dans Firebase');
+                return true;
+            } catch (error) {
+                console.error('❌ Erreur sauvegarde commandes:', error);
+                return false;
+            }
+        }
+
+        // 📋 Charger les commandes depuis Firebase
+        async function loadOrdersFromFirebase() {
+            try {
+                const doc = await db.collection('zooData').doc('orders').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    orders = data.orders || [];
+                    refCounter = data.refCounter || 0;
+                    console.log('✅ Commandes chargées depuis Firebase');
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('❌ Erreur chargement commandes:', error);
+                return false;
+            }
+        }
+
+        // 🔄 Synchronisation complète (upload)
+        async function syncAllData() {
+            showToast('⏳ Synchronisation en cours...');
+            try {
+                const [productsOk, ordersOk] = await Promise.all([
+                    saveProductsToFirebase(),
+                    saveOrdersToFirebase()
+                ]);
+                if (productsOk && ordersOk) {
+                    showToast('✅ Données synchronisées avec Firebase');
+                    await testFirebaseConnection();
+                } else {
+                    showToast('⚠️ Synchronisation partielle');
+                }
+            } catch (error) {
+                showToast('❌ Erreur de synchronisation');
+                console.error(error);
+            }
+        }
+
+        // 📥 Chargement complet depuis Firebase
+        async function loadAllData() {
+            showToast('⏳ Chargement depuis Firebase...');
+            try {
+                const [productsLoaded, ordersLoaded] = await Promise.all([
+                    loadProductsFromFirebase(),
+                    loadOrdersFromFirebase()
+                ]);
+                if (productsLoaded || ordersLoaded) {
+                    // Mettre à jour l'interface
+                    updateBadges();
+                    updateCartUI();
+                    renderOrders();
+                    // Sauvegarder localement
+                    localStorage.setItem('zooOrderProducts', JSON.stringify(allProducts));
+                    localStorage.setItem('zooOrders', JSON.stringify(orders));
+                    showToast('✅ Données chargées depuis Firebase');
+                    await testFirebaseConnection();
+                } else {
+                    showToast('ℹ️ Aucune donnée trouvée dans Firebase');
+                }
+            } catch (error) {
+                showToast('❌ Erreur de chargement');
+                console.error(error);
+            }
+        }
+
+        // ============================================================
+        // FONCTIONS ORIGINALES MODIFIÉES (avec Firebase)
+        // ============================================================
+
+        // Sauvegarde des produits (localStorage + Firebase)
+        function saveProducts() {
+            try {
+                var dataToSave = JSON.stringify(allProducts);
+                localStorage.setItem('zooOrderProducts', dataToSave);
+                localStorage.setItem('zooOrderProducts_backup', dataToSave);
+                // Sauvegarde en arrière-plan dans Firebase
+                saveProductsToFirebase();
+                return true;
+            } catch (e) {
+                console.error('❌ Erreur de sauvegarde:', e);
+                return false;
+            }
+        }
+
+        // Sauvegarde des commandes (localStorage + Firebase)
+        function saveOrders() {
+            localStorage.setItem('zooOrders', JSON.stringify(orders));
+            renderOrders();
+            // Sauvegarde en arrière-plan dans Firebase
+            saveOrdersToFirebase();
+        }
+
+        // ============================================================
+        // CHARGEMENT DES DONNÉES AU DÉMARRAGE
+        // ============================================================
+
+        function loadData() {
+            loadLogo();
+
+            // Charger depuis localStorage d'abord
+            loadProducts();
+
+            var savedCart = localStorage.getItem('zooCart');
+            if (savedCart) {
+                try { cart = JSON.parse(savedCart); } catch (e) { console.log('Erreur chargement panier'); }
+            }
+
+            var savedOrders = localStorage.getItem('zooOrders');
+            if (savedOrders) {
+                try {
+                    orders = JSON.parse(savedOrders);
+                    if (orders.length > 0) {
+                        var maxRef = 0;
+                        orders.forEach(function(o) {
+                            if (o.ref) { var num = parseInt(o.ref); if (num > maxRef) maxRef = num; }
+                        });
+                        refCounter = maxRef;
+                    }
+                } catch (e) { console.log('Erreur chargement commandes'); }
+            }
+
+            updateBadges();
+            updateCartUI();
+            renderOrders();
+            checkStorageSpace();
+
+            // Tester la connexion Firebase et charger les données
+            testFirebaseConnection().then(connected => {
+                if (connected) {
+                    // Essayer de charger les données depuis Firebase
+                    loadAllData().then(success => {
+                        if (success) {
+                            console.log('✅ Données synchronisées avec Firebase');
+                        }
+                    });
+                }
+            });
+        }
+
+        // ============================================================
+        // TOAST NOTIFICATION
+        // ============================================================
+        function showToast(message) {
+            var toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:12px 24px;border-radius:50px;font-family:"Cairo",sans-serif;font-size:15px;font-weight:700;z-index:9999;border:2px solid #ffd700;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;max-width:90%;animation:slideUp 0.3s ease;';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 3000);
+        }
+
+        // ============================================================
+        // LE RESTE DU CODE ORIGINAL (inchangé)
+        // ============================================================
+
         // ===== Gestion du logo =====
         function loadLogo() {
             var savedLogo = localStorage.getItem('zooLogo');
@@ -451,32 +736,6 @@
             }
         }
 
-        function saveProducts() {
-            try {
-                var dataToSave = JSON.stringify(allProducts);
-                var sizeInKB = Math.round(dataToSave.length / 1024);
-                console.log('Taille des données: ' + sizeInKB + ' KB');
-                
-                if (dataToSave.length > 4.5 * 1024 * 1024) {
-                    document.getElementById('storageWarning').style.display = 'block';
-                    showToast('⚠️ Espace de stockage presque plein !');
-                    return false;
-                } else {
-                    document.getElementById('storageWarning').style.display = 'none';
-                }
-                
-                localStorage.setItem('zooOrderProducts', dataToSave);
-                localStorage.setItem('zooOrderProducts_backup', dataToSave);
-                console.log('✅ Produits sauvegardés (taille: ' + sizeInKB + ' KB)');
-                return true;
-            } catch (e) {
-                console.error('❌ Erreur de sauvegarde:', e);
-                document.getElementById('storageWarning').style.display = 'block';
-                showToast('❌ Espace de stockage plein ! Supprimez des images ou exportez les données.');
-                return false;
-            }
-        }
-
         function loadProducts() {
             var savedProducts = localStorage.getItem('zooOrderProducts');
             if (savedProducts) {
@@ -489,7 +748,7 @@
                                 allProducts[key].accessories = parsed[key].accessories || [];
                             }
                         }
-                        console.log('✅ Produits chargés');
+                        console.log('✅ Produits chargés depuis localStorage');
                         return true;
                     }
                 } catch (e) {
@@ -514,33 +773,7 @@
             return false;
         }
 
-        // ===== Chargement des données =====
-        function loadData() {
-            loadLogo();
-            loadProducts();
-            var savedCart = localStorage.getItem('zooCart');
-            if (savedCart) { try { cart = JSON.parse(savedCart); } catch (e) { console.log('Erreur chargement panier'); } }
-            var savedOrders = localStorage.getItem('zooOrders');
-            if (savedOrders) {
-                try {
-                    orders = JSON.parse(savedOrders);
-                    if (orders.length > 0) {
-                        var maxRef = 0;
-                        orders.forEach(function(o) {
-                            if (o.ref) { var num = parseInt(o.ref); if (num > maxRef) maxRef = num; }
-                        });
-                        refCounter = maxRef;
-                    }
-                } catch (e) { console.log('Erreur chargement commandes'); }
-            }
-            updateBadges();
-            updateCartUI();
-            renderOrders();
-            checkStorageSpace();
-        }
-
         function saveCart() { localStorage.setItem('zooCart', JSON.stringify(cart)); updateCartUI(); }
-        function saveOrders() { localStorage.setItem('zooOrders', JSON.stringify(orders)); renderOrders(); }
         function updateBadges() {
             var cats = ['cats', 'dogs', 'birds', 'fish', 'other'];
             cats.forEach(function(c) {
@@ -660,23 +893,28 @@
             container.innerHTML = html;
         }
 
-        // =============================================
-        // 🔹 Impression d'une commande - Style épuré et simple
-        // =============================================
+        // ============================================================
+        // IMPRESSION - STYLE TICKET
+        // ============================================================
         function printOrder(index) {
             var order = orders[index];
             if (!order) return;
             var ref = order.ref || String(index + 1).padStart(5, '0');
-            
+            var now = new Date();
+            var dateStr = now.toLocaleDateString('fr-MA') + ' ' + now.toLocaleTimeString('fr-MA', {hour:'2-digit',minute:'2-digit'});
+
             var productsHtml = '';
             order.items.forEach(function(item, i) {
                 var itemTotal = item.price * item.qty;
-                productsHtml += '<tr><td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:center;">' + (i + 1) + '</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:right;">' + item.name + '</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:center;">' + item.qty + '</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:center;">' + formatPrice(item.price) + '</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:center;font-weight:700;">' + formatPrice(itemTotal) + '</td></tr>';
+                productsHtml += '<div style="display:flex;justify-content:space-between;font-size:9px;padding:2px 0;border-bottom:1px dashed #ddd;">' +
+                    '<span>' + (i+1) + '. ' + item.name + ' × ' + item.qty + '</span>' +
+                    '<span style="font-weight:700;">' + formatPrice(itemTotal) + '</span>' +
+                    '</div>';
             });
 
-            var invoiceHtml = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Facture #' + ref + '</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:"Cairo",sans-serif;background:#f5f0eb;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;direction:rtl;}.invoice-wrapper{background:#ffffff;max-width:700px;width:100%;padding:30px 35px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.08);border:1px solid #e8e0d8;}.invoice-header{text-align:center;border-bottom:2px solid #f0e8e0;padding-bottom:20px;margin-bottom:20px;}.invoice-header .logo{font-size:28px;font-weight:900;color:#1a1a2e;line-height:1.2;}.invoice-header .logo .gold{color:#c97b2b;}.invoice-header .logo .delivery{font-weight:400;font-size:13px;color:#6b5f4f;display:block;letter-spacing:2px;margin-top:2px;}.invoice-header .sub{font-size:14px;color:#6b5f4f;margin-top:4px;font-weight:600;}.invoice-header .ref-box{background:#f8f4ec;border:2px solid #ffd700;color:#1a1a2e;padding:4px 18px;display:inline-block;font-weight:700;font-size:14px;margin-top:8px;border-radius:30px;}.invoice-header .phone{color:#6b5f4f;font-size:13px;margin-top:6px;}.customer-info{background:#f8f4ec;border-radius:12px;padding:14px 20px;margin-bottom:16px;border-right:4px solid #ffd700;}.customer-info .row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #e8e0d8;}.customer-info .row:last-child{border-bottom:none;}.customer-info .label{font-weight:600;color:#1a1a2e;}.customer-info .value{color:#6b5f4f;}.invoice-table{width:100%;border-collapse:collapse;margin:12px 0;}.invoice-table th{background:#f8f4ec;padding:10px 6px;text-align:center;font-size:12px;font-weight:700;color:#1a1a2e;border-bottom:2px solid #ffd700;}.invoice-table td{padding:8px 6px;text-align:center;color:#1a1a2e;border-bottom:1px solid #f0e8e0;}.invoice-total{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-top:3px solid #ffd700;margin-top:8px;font-size:20px;font-weight:900;color:#1a1a2e;}.invoice-total .total-price{color:#c97b2b;font-size:26px;}.invoice-footer{text-align:center;margin-top:16px;padding-top:16px;border-top:2px solid #f0e8e0;color:#6b5f4f;font-size:13px;}.invoice-footer .thanks{color:#1a1a2e;font-weight:700;font-size:15px;}.invoice-footer .small-text{font-size:11px;color:#8a7a66;margin-top:4px;}.print-btn{background:#1a1a2e;color:#fff;border:none;padding:12px;border-radius:40px;font-size:16px;font-weight:700;font-family:"Cairo",sans-serif;cursor:pointer;width:100%;margin-top:16px;transition:0.3s;}.print-btn:hover{background:#ffd700;color:#1a1a2e;}@media print{.print-btn{display:none!important;}body{background:#fff;padding:0;margin:0;}.invoice-wrapper{max-width:100%;padding:15px 20px;border-radius:0;box-shadow:none;border:none;}.invoice-header .logo{font-size:22px;}.invoice-header .logo .delivery{font-size:11px;}.invoice-header .sub{font-size:12px;}.invoice-header .ref-box{font-size:12px;padding:3px 14px;}.customer-info{font-size:13px;padding:10px 14px;}.invoice-table th{font-size:10px;padding:6px 4px;}.invoice-table td{font-size:11px;padding:5px 4px;}.invoice-total{font-size:16px;}.invoice-total .total-price{font-size:20px;}.invoice-footer{font-size:11px;}.invoice-footer .thanks{font-size:13px;}.invoice-footer .small-text{font-size:9px;}}</style></head><body><div class="invoice-wrapper"><div class="invoice-header"><div class="logo">🐾 Zoo <span class="gold">Order</span><span class="delivery">✦ Livraison Rapide ✦</span></div><div class="sub">Facture Commande #' + ref + '</div><div class="ref-box">📌 Réf: ' + ref + '</div><div class="phone">📞 ' + WHATSAPP_NUMBER + '</div></div><div class="customer-info"><div class="row"><span class="label">👤 Client</span><span class="value">' + order.customer + '</span></div><div class="row"><span class="label">📞 Téléphone</span><span class="value">' + order.phone + '</span></div><div class="row"><span class="label">📍 Adresse</span><span class="value">' + order.address + '</span></div>' + (order.note ? '<div class="row"><span class="label">📝 Notes</span><span class="value">' + order.note + '</span></div>' : '') + '</div><table class="invoice-table"><thead><tr><th>#</th><th>Produit</th><th>Qté</th><th>Prix U.</th><th>Total</th></tr></thead><tbody>' + productsHtml + '</tbody></table><div class="invoice-total"><span>Total</span><span class="total-price">' + formatPrice(order.total) + ' DH</span></div><div class="invoice-footer"><div class="thanks">🙏 Merci pour votre confiance</div><div class="small-text">' + new Date().toLocaleString('fr-MA') + '</div></div><button class="print-btn" onclick="window.print()">🖨️ Imprimer</button></div><script>setTimeout(function(){window.print();},500);<\/script></body></html>';
+            var invoiceHtml = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ticket #' + ref + '</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:"Cairo",sans-serif;background:#ffffff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:8px 4px;direction:rtl;}.ticket{max-width:220px;width:100%;padding:6px 8px;background:#ffffff;text-align:center;border:1px solid #ccc;border-radius:4px;}.ticket .brand{font-size:18px;font-weight:900;color:#1a1a2e;letter-spacing:1px;}.ticket .brand .gold{color:#c97b2b;}.ticket .brand .sub{font-weight:400;font-size:8px;color:#888;display:block;letter-spacing:1px;}.ticket .divider-dash{height:1px;background:transparent;border-top:1px dashed #aaa;margin:4px 0;}.ticket .ref{font-size:10px;font-weight:700;color:#1a1a2e;margin:2px 0;}.ticket .date{font-size:8px;color:#888;margin-bottom:3px;}.ticket .customer{font-size:11px;font-weight:700;color:#1a1a2e;padding:3px 0;}.ticket .items{text-align:right;padding:3px 0;}.ticket .total{display:flex;justify-content:space-between;font-size:14px;font-weight:900;color:#1a1a2e;padding:6px 0 3px;border-top:2px solid #333;margin-top:3px;}.ticket .total .amount{color:#c97b2b;font-size:16px;}.ticket .thanks{font-size:8px;color:#888;margin-top:4px;padding-top:4px;border-top:1px dashed #aaa;}.print-btn{background:#1a1a2e;color:#fff;border:none;padding:6px 12px;border-radius:20px;font-size:10px;font-weight:700;font-family:"Cairo",sans-serif;cursor:pointer;width:100%;margin-top:6px;transition:0.3s;}.print-btn:hover{background:#c97b2b;}@media print{.print-btn{display:none!important;}body{background:#fff;padding:0;margin:0;}.ticket{max-width:100%;padding:4px 6px;border:none;border-radius:0;}.ticket .brand{font-size:15px;}.ticket .brand .sub{font-size:7px;}.ticket .ref{font-size:9px;}.ticket .date{font-size:7px;}.ticket .customer{font-size:10px;}.ticket .items div{font-size:7px!important;padding:1px 0;}.ticket .total{font-size:12px;padding:4px 0 2px;}.ticket .total .amount{font-size:13px;}.ticket .thanks{font-size:7px;}}</style></head><body><div class="ticket"><div class="brand">🐾 Zoo<span class="gold">Order</span><span class="sub">✦ Livraison Rapide ✦</span></div><div class="divider-dash"></div><div class="ref">📌 # ' + ref + '</div><div class="date">' + dateStr + '</div><div class="divider-dash"></div><div class="customer">👤 ' + order.customer + '</div><div class="divider-dash"></div><div class="items">' + productsHtml + '</div><div class="total"><span>Total</span><span class="amount">' + formatPrice(order.total) + ' DH</span></div><div class="thanks">🙏 Merci pour votre confiance</div><button class="print-btn" onclick="window.print()">🖨️ Imprimer</button></div><script>setTimeout(function(){window.print();},300);<\/script></body></html>';
 
-            var win = window.open('', '_blank', 'width=600,height=800');
+            var win = window.open('', '_blank', 'width=340,height=550');
             win.document.write(invoiceHtml);
             win.document.close();
         }
@@ -693,10 +931,14 @@
             var ordersTable = '';
             orders.forEach(function(order, idx) {
                 var ref = order.ref || String(idx + 1).padStart(5, '0');
-                ordersTable += '<tr><td style="padding:6px 8px;border-bottom:1px solid #e8e0d8;text-align:center;">' + (idx + 1) + '</td><td style="padding:6px 8px;border-bottom:1px solid #e8e0d8;text-align:center;">' + ref + '</td><td style="padding:6px 8px;border-bottom:1px solid #e8e0d8;text-align:right;">' + order.customer + '</td><td style="padding:6px 8px;border-bottom:1px solid #e8e0d8;text-align:center;font-weight:700;">' + formatPrice(order.total) + '</td></tr>';
+                ordersTable += '<div style="display:flex;justify-content:space-between;font-size:8px;padding:2px 0;border-bottom:1px dashed #ddd;">' +
+                    '<span>' + (idx+1) + '. #' + ref + '</span>' +
+                    '<span>' + order.customer + '</span>' +
+                    '<span style="font-weight:700;">' + formatPrice(order.total) + '</span>' +
+                    '</div>';
             });
-            var printHtml = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Résumé des commandes</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:"Cairo",sans-serif;background:#f5f0eb;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;direction:rtl;}.wrapper{background:#ffffff;max-width:800px;width:100%;padding:30px 35px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.08);border:1px solid #e8e0d8;}.header{text-align:center;border-bottom:2px solid #f0e8e0;padding-bottom:20px;margin-bottom:20px;}.header .logo{font-size:28px;font-weight:900;color:#1a1a2e;}.header .logo span{color:#c97b2b;}.header .sub{font-size:14px;color:#6b5f4f;margin-top:4px;font-weight:600;}.header .date{color:#6b5f4f;font-size:13px;margin-top:4px;}.summary{background:#f8f4ec;border-radius:12px;padding:16px;margin-bottom:16px;display:flex;justify-content:space-around;flex-wrap:wrap;gap:8px;border-right:4px solid #ffd700;}.summary .item{text-align:center;}.summary .item .number{font-size:22px;font-weight:900;color:#c97b2b;}.summary .item .label{font-size:12px;color:#6b5f4f;}table{width:100%;border-collapse:collapse;margin:8px 0;}table th{background:#f8f4ec;padding:10px 8px;text-align:center;font-size:12px;font-weight:700;color:#1a1a2e;border-bottom:2px solid #ffd700;}table td{padding:8px 8px;text-align:center;color:#1a1a2e;border-bottom:1px solid #f0e8e0;}.grand-total{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-top:3px solid #ffd700;margin-top:8px;font-size:20px;font-weight:900;color:#1a1a2e;}.grand-total .total-price{color:#c97b2b;font-size:26px;}.print-btn{background:#1a1a2e;color:#fff;border:none;padding:12px;border-radius:40px;font-size:16px;font-weight:700;font-family:"Cairo",sans-serif;cursor:pointer;width:100%;margin-top:16px;transition:0.3s;}.print-btn:hover{background:#ffd700;color:#1a1a2e;}.footer-text{text-align:center;margin-top:16px;padding-top:16px;border-top:2px solid #f0e8e0;color:#6b5f4f;font-size:13px;}.footer-text .thanks{color:#1a1a2e;font-weight:700;font-size:15px;}@media print{.print-btn{display:none;}body{background:#fff;padding:0;margin:0;}.wrapper{max-width:100%;padding:15px 20px;border-radius:0;box-shadow:none;border:none;}.header .logo{font-size:22px;}.header .sub{font-size:12px;}.header .date{font-size:11px;}.summary{padding:10px;border-right-width:3px;}.summary .item .number{font-size:18px;}.summary .item .label{font-size:10px;}table th{font-size:10px;padding:6px 4px;}table td{font-size:11px;padding:5px 4px;}.grand-total{font-size:16px;}.grand-total .total-price{font-size:20px;}.footer-text{font-size:11px;}.footer-text .thanks{font-size:13px;}}</style></head><body><div class="wrapper"><div class="header"><div class="logo">🐾 Zoo <span>Order</span></div><div class="sub">Résumé des commandes</div><div class="date">📅 ' + now + '</div></div><div class="summary"><div class="item"><div class="number">' + orders.length + '</div><div class="label">Commandes</div></div><div class="item"><div class="number">' + totalProducts + '</div><div class="label">Produits</div></div><div class="item"><div class="number">' + formatPrice(grandTotal) + '</div><div class="label">Chiffre d\'affaires</div></div></div><table><thead><tr><th>#</th><th>Réf</th><th>Client</th><th>Total</th></tr></thead><tbody>' + ordersTable + '</tbody></table><div class="grand-total"><span>Total général</span><span class="total-price">' + formatPrice(grandTotal) + ' DH</span></div><div class="footer-text"><div class="thanks">🙏 Merci pour votre confiance</div></div><button class="print-btn" onclick="window.print()">🖨️ Imprimer</button></div><script>setTimeout(function(){window.print();},500);<\/script></body></html>';
-            var win = window.open('', '_blank', 'width=700,height=800');
+            var printHtml = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Résumé</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:"Cairo",sans-serif;background:#ffffff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:8px 4px;direction:rtl;}.ticket{max-width:240px;width:100%;padding:6px 8px;background:#ffffff;text-align:center;border:1px solid #ccc;border-radius:4px;}.ticket .brand{font-size:18px;font-weight:900;color:#1a1a2e;}.ticket .brand span{color:#c97b2b;}.ticket .divider-dash{height:1px;background:transparent;border-top:1px dashed #aaa;margin:4px 0;}.ticket .sub{font-size:9px;color:#888;margin:2px 0;}.ticket .date{font-size:8px;color:#888;margin-bottom:3px;}.ticket .summary{display:flex;justify-content:space-around;font-size:9px;padding:3px 0;}.ticket .summary .item{text-align:center;}.ticket .summary .number{font-weight:900;color:#c97b2b;font-size:12px;}.ticket .orders{text-align:right;padding:3px 0;}.ticket .total{display:flex;justify-content:space-between;font-size:14px;font-weight:900;color:#1a1a2e;padding:6px 0 3px;border-top:2px solid #333;margin-top:3px;}.ticket .total .amount{color:#c97b2b;font-size:16px;}.print-btn{background:#1a1a2e;color:#fff;border:none;padding:6px 12px;border-radius:20px;font-size:10px;font-weight:700;font-family:"Cairo",sans-serif;cursor:pointer;width:100%;margin-top:6px;transition:0.3s;}.print-btn:hover{background:#c97b2b;}@media print{.print-btn{display:none;}body{background:#fff;padding:0;margin:0;}.ticket{max-width:100%;padding:4px 6px;border:none;border-radius:0;}.ticket .brand{font-size:15px;}.ticket .sub{font-size:7px;}.ticket .date{font-size:7px;}.ticket .summary .number{font-size:10px;}.ticket .orders div{font-size:7px!important;padding:1px 0;}.ticket .total{font-size:12px;padding:4px 0 2px;}.ticket .total .amount{font-size:13px;}}</style></head><body><div class="ticket"><div class="brand">🐾 Zoo<span>Order</span></div><div class="sub">Résumé des commandes</div><div class="date">📅 ' + now + '</div><div class="divider-dash"></div><div class="summary"><div class="item"><div class="number">' + orders.length + '</div><div>Cmd</div></div><div class="item"><div class="number">' + totalProducts + '</div><div>Prod</div></div><div class="item"><div class="number">' + formatPrice(grandTotal) + '</div><div>CA</div></div></div><div class="divider-dash"></div><div class="orders">' + ordersTable + '</div><div class="total"><span>Total général</span><span class="amount">' + formatPrice(grandTotal) + ' DH</span></div><button class="print-btn" onclick="window.print()">🖨️ Imprimer</button></div><script>setTimeout(function(){window.print();},300);<\/script></body></html>';
+            var win = window.open('', '_blank', 'width=380,height=550);
             win.document.write(printHtml);
             win.document.close();
         }
@@ -729,17 +971,15 @@
             document.getElementById('customerPhone').value = order.phone;
             document.getElementById('customerAddress').value = order.address;
             document.getElementById('deliveryNote').value = order.note || '';
-            // Supprimer la commande pour la recréer après modification
             orders.splice(index, 1);
             saveOrders();
-            // Ajouter les produits au panier
             order.items.forEach(function(item) {
                 var existing = cart.find(function(c) { return c.name === item.name; });
                 if (existing) { existing.qty += item.qty; } else { cart.push({ name: item.name, price: item.price, qty: item.qty }); }
             });
             saveCart();
             openCustomerModal();
-            showToast('✏️ Modifiez les informations et réenregistrez');
+            showToast('✏️ Modifiez et réenregistrez');
         }
 
         // ===== Supprimer une commande =====
@@ -761,18 +1001,13 @@
 
         // ===== Export/Import =====
         function exportData() {
-            var data = {
-                products: allProducts,
-                orders: orders,
-                refCounter: refCounter,
-                exportedAt: new Date().toISOString()
-            };
+            var data = { products: allProducts, orders: orders, refCounter: refCounter, exportedAt: new Date().toISOString() };
             var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             var link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = 'zoo_data_backup_' + new Date().toISOString().slice(0,10) + '.json';
             link.click();
-            showToast('📤 Données exportées avec succès');
+            showToast('📤 Données exportées');
         }
 
         function importData(event) {
@@ -791,19 +1026,12 @@
                         }
                         saveProducts();
                     }
-                    if (data.orders) {
-                        orders = data.orders;
-                        saveOrders();
-                    }
-                    if (data.refCounter) {
-                        refCounter = data.refCounter;
-                    }
+                    if (data.orders) { orders = data.orders; saveOrders(); }
+                    if (data.refCounter) { refCounter = data.refCounter; }
                     updateBadges();
                     renderOrders();
-                    showToast('📥 Données importées avec succès');
-                } catch (err) {
-                    alert('❌ Erreur lors de l\'importation: ' + err.message);
-                }
+                    showToast('📥 Données importées');
+                } catch (err) { alert('❌ Erreur: ' + err.message); }
             };
             reader.readAsText(file);
             event.target.value = '';
@@ -821,8 +1049,7 @@
         }
         function updateStats() {
             document.getElementById('totalOrders').textContent = orders.length;
-            var revenue = 0;
-            var productStats = {};
+            var revenue = 0, productStats = {};
             orders.forEach(function(order) {
                 revenue += order.total;
                 order.items.forEach(function(item) {
@@ -832,7 +1059,7 @@
             });
             document.getElementById('totalRevenue').textContent = formatPrice(revenue);
             var list = document.getElementById('productStatsList');
-            var items = Object.keys(productStats).sort(function(a, b) { return productStats[b] - productStats[a]; });
+            var items = Object.keys(productStats).sort(function(a,b) { return productStats[b]-productStats[a]; });
             if (items.length === 0) {
                 list.innerHTML = '<div style="text-align:center;color:#8a7a66;padding:8px;">Aucun produit vendu</div>';
             } else {
@@ -842,15 +1069,6 @@
                 });
                 list.innerHTML = html;
             }
-        }
-
-        // ===== Toast =====
-        function showToast(message) {
-            var toast = document.createElement('div');
-            toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:12px 24px;border-radius:50px;font-family:"Cairo",sans-serif;font-size:15px;font-weight:700;z-index:9999;border:2px solid #ffd700;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;max-width:90%;animation:slideUp 0.3s ease;';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(function() { toast.remove(); }, 3000);
         }
 
         // ===== Administration des produits =====
@@ -902,14 +1120,8 @@
             document.getElementById('productPrice').value = item.price;
             document.getElementById('productType').value = item.type || 'food';
             var preview = document.getElementById('imagePreview');
-            if (item.image) {
-                preview.src = item.image;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-                preview.src = '';
-            }
-            // Mettre en surbrillance l'élément sélectionné
+            if (item.image) { preview.src = item.image; preview.style.display = 'block'; } 
+            else { preview.style.display = 'none'; preview.src = ''; }
             var items = document.querySelectorAll('.product-list-admin .item');
             items.forEach(function(el) { el.style.background = 'transparent'; });
             if (items[index]) items[index].style.background = '#f0ebe2';
@@ -919,52 +1131,33 @@
             var desc = document.getElementById('productDesc').value.trim();
             var price = parseFloat(document.getElementById('productPrice').value);
             var type = document.getElementById('productType').value;
-            if (!name) { alert('❌ Entrez un nom de produit'); return; }
-            if (isNaN(price) || price <= 0) { alert('❌ Entrez un prix valide'); return; }
+            if (!name) { alert('❌ Entrez un nom'); return; }
+            if (isNaN(price) || price <= 0) { alert('❌ Prix valide'); return; }
             var products = allProducts[currentAdminCategory];
             var targetArray = (type === 'food') ? products.foods : products.accessories;
-            var imageInput = document.getElementById('productImage');
             var imageData = document.getElementById('imagePreview').src || '';
-            
-            var product = {
-                name: name,
-                desc: desc,
-                price: price,
-                type: type,
-                image: imageData || ''
-            };
-            
+            var product = { name: name, desc: desc, price: price, type: type, image: imageData };
             if (selectedProductId !== null) {
-                // Modification
                 var allItems = products.foods.concat(products.accessories);
                 if (selectedProductId < allItems.length) {
                     var oldItem = allItems[selectedProductId];
-                    // Déterminer si le type a changé
                     var oldType = oldItem.type || 'food';
                     if (oldType !== type) {
-                        // Supprimer de l'ancien tableau
                         var oldArray = (oldType === 'food') ? products.foods : products.accessories;
                         var idxToRemove = oldArray.indexOf(oldItem);
                         if (idxToRemove > -1) oldArray.splice(idxToRemove, 1);
-                        // Ajouter au nouveau tableau
                         targetArray.push(product);
                     } else {
-                        // Même type, remplacer
                         var idxInArray = targetArray.indexOf(oldItem);
-                        if (idxInArray > -1) {
-                            targetArray[idxInArray] = product;
-                        }
+                        if (idxInArray > -1) targetArray[idxInArray] = product;
                     }
                 }
             } else {
-                // Nouveau produit
                 targetArray.push(product);
             }
-            
             saveProducts();
             updateBadges();
             renderProductList();
-            // Réinitialiser les champs
             document.getElementById('productName').value = '';
             document.getElementById('productDesc').value = '';
             document.getElementById('productPrice').value = '';
@@ -972,11 +1165,11 @@
             document.getElementById('imagePreview').src = '';
             document.getElementById('productImage').value = '';
             selectedProductId = null;
-            showToast('✅ Produit enregistré !');
+            showToast('✅ Produit enregistré');
         }
         function deleteProduct() {
-            if (selectedProductId === null) { alert('❌ Sélectionnez un produit à supprimer'); return; }
-            if (!confirm('Supprimer ce produit ?')) return;
+            if (selectedProductId === null) { alert('❌ Sélectionnez un produit'); return; }
+            if (!confirm('Supprimer ?')) return;
             var products = allProducts[currentAdminCategory];
             var allItems = products.foods.concat(products.accessories);
             var item = allItems[selectedProductId];
@@ -996,7 +1189,6 @@
             showToast('🗑️ Produit supprimé');
         }
 
-        // Gestion de l'upload d'image pour l'admin
         document.getElementById('productImage').addEventListener('change', function(e) {
             var file = e.target.files[0];
             if (!file) return;
@@ -1004,9 +1196,7 @@
                 document.getElementById('imagePreview').src = dataUrl;
                 document.getElementById('imagePreview').style.display = 'block';
                 showToast('✅ Image chargée');
-            }).catch(function(err) {
-                alert('❌ Erreur: ' + err);
-            });
+            }).catch(function(err) { alert('❌ Erreur: ' + err); });
         });
 
         // ===== Catégories modal =====
@@ -1040,11 +1230,8 @@
         function filterProducts() {
             searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
             var clearBtn = document.getElementById('clearSearch');
-            if (searchTerm.length > 0) {
-                clearBtn.classList.add('visible');
-            } else {
-                clearBtn.classList.remove('visible');
-            }
+            if (searchTerm.length > 0) { clearBtn.classList.add('visible'); } 
+            else { clearBtn.classList.remove('visible'); }
             renderCategoryProducts();
         }
         function clearSearch() {
@@ -1059,13 +1246,11 @@
             var foodContainer = document.getElementById('foodContent');
             var accContainer = document.getElementById('accContent');
             var search = searchTerm.toLowerCase();
-            
             function renderItems(items, container) {
                 var filtered = items;
                 if (search) {
                     filtered = items.filter(function(item) {
-                        return item.name.toLowerCase().includes(search) || 
-                               (item.desc && item.desc.toLowerCase().includes(search));
+                        return item.name.toLowerCase().includes(search) || (item.desc && item.desc.toLowerCase().includes(search));
                     });
                 }
                 if (filtered.length === 0) {
@@ -1084,20 +1269,21 @@
                 });
                 container.innerHTML = html;
             }
-            
             renderItems(products.foods, foodContainer);
             renderItems(products.accessories, accContainer);
         }
 
-        // ===== Initialisation =====
+        // ============================================================
+        // DÉMARRAGE DE L'APPLICATION
+        // ============================================================
         loadData();
 
-        // Ajout du style pour les animations
+        // Style d'animation
         var styleSheet = document.createElement('style');
         styleSheet.textContent = '@keyframes slideUp { from { opacity:0; transform:translate(-50%,20px); } to { opacity:1; transform:translate(-50%,0); } }';
         document.head.appendChild(styleSheet);
 
-        // Fermeture des modals en cliquant à l'extérieur
+        // Fermeture des modals
         document.querySelectorAll('.modal-overlay, .customer-modal, .stats-modal, .admin-modal, .image-modal').forEach(function(el) {
             el.addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -1110,7 +1296,8 @@
             });
         });
 
-        console.log('🐾 Zoo Order - Système de commandes chargé !');
+        console.log('🐾 Zoo Order - Système de commandes avec Firebase !');
+        console.log('🔥 Firebase Project:', firebaseConfig.projectId);
     </script>
 </body>
 </html>
