@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
 
-    <!-- ===== Firebase SDK (méthode CDN) ===== -->
+    <!-- ===== Firebase SDK (CDN) ===== -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -126,6 +126,8 @@
         .btn-firebase-sync:hover { background:#3367d6; transform:scale(1.02); }
         .btn-firebase-load { background:#34a853; color:#fff; }
         .btn-firebase-load:hover { background:#2d9249; transform:scale(1.02); }
+        .btn-firebase-reset { background:#ea4335; color:#fff; }
+        .btn-firebase-reset:hover { background:#c62828; transform:scale(1.02); }
         .order-card { background:#f8f4ec; border-radius:14px; padding:16px; margin-top:12px; border-right:4px solid #ffd700; transition:0.3s; border:1px solid #ede6da; border-right:4px solid #ffd700; }
         .order-card:hover { background:#f5efe4; }
         .order-card .order-number { font-size:20px; font-weight:900; color:#1a1a2e; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
@@ -303,6 +305,7 @@
                 <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)" />
                 <button class="btn-firebase-sync" onclick="syncAllData()">🔄 Sync Firebase</button>
                 <button class="btn-firebase-load" onclick="loadAllData()">📥 Load Firebase</button>
+                <button class="btn-firebase-reset" onclick="resetFirebaseData()">🔄 Reset Firebase</button>
             </div>
             <div id="ordersContainer"><div class="empty-orders"><span class="icon">📭</span>Aucune commande</div></div>
         </div>
@@ -375,7 +378,7 @@
 
     <script>
         // ============================================================
-        // 🔥 FIREBASE CONFIGURATION (Vos données)
+        // 🔥 FIREBASE CONFIGURATION - NOUVEAU (REMETTRE LE NOUVEAU)
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyC9kOnDQA5PxBlHSCpznGzXiCEMzrBGvkQ",
@@ -541,6 +544,21 @@
             }
         }
 
+        // 🔄 Réinitialiser Firebase
+        async function resetFirebaseData() {
+            if (!confirm('⚠️ Voulez-vous vraiment supprimer TOUTES les données dans Firebase ?')) return;
+            showToast('⏳ Réinitialisation...');
+            try {
+                await db.collection('zooData').doc('products').set({});
+                await db.collection('zooData').doc('orders').set({ orders: [], refCounter: 0 });
+                showToast('✅ Firebase réinitialisé');
+                await testFirebaseConnection();
+            } catch (error) {
+                showToast('❌ Erreur');
+                console.error(error);
+            }
+        }
+
         // ============================================================
         // FONCTIONS ORIGINALES MODIFIÉES (avec Firebase)
         // ============================================================
@@ -677,6 +695,23 @@
             fish: { name: 'Poissons', icon: '🐠', foods: [], accessories: [] },
             other: { name: 'Autres', icon: '🐇', foods: [], accessories: [] }
         };
+
+        // ===== إضافة منتجات تجريبية =====
+        // (سيتم حفظها في Firebase بعد أول مزامنة)
+        allProducts.cats.foods.push(
+            { name: "Croquettes Chats", desc: "Aliment complet 1.5kg", price: 45.00, type: "food", image: "" },
+            { name: "Pâtée Chats", desc: "En boîte 400g", price: 12.00, type: "food", image: "" }
+        );
+        allProducts.dogs.foods.push(
+            { name: "Croquettes Chiens", desc: "Aliment complet 15kg", price: 120.00, type: "food", image: "" },
+            { name: "Os à mâcher", desc: "Pour chiens", price: 8.00, type: "accessory", image: "" }
+        );
+        allProducts.birds.foods.push(
+            { name: "Graines Oiseaux", desc: "Mélange complet 1kg", price: 18.00, type: "food", image: "" }
+        );
+        allProducts.fish.foods.push(
+            { name: "Nourriture Poisson", desc: "Flocons 250g", price: 9.00, type: "food", image: "" }
+        );
 
         var cart = [];
         var orders = [];
