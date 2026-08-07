@@ -7,11 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
-
-    <!-- ===== Firebase SDK (طريقة CDN) ===== -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Cairo',sans-serif; background:#f0ebe2; color:#1a1a2e; direction:rtl; padding:16px 12px 40px; min-height:100vh; padding-bottom:100px; }
@@ -30,12 +25,6 @@
         .delivery-badge { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; background:rgba(255,255,255,0.1); border:2px solid rgba(255,215,0,0.2); border-radius:50px; padding:6px 22px 6px 18px; margin:10px auto 0; max-width:320px; }
         .delivery-badge .label { color:rgba(255,255,255,0.9); font-size:15px; font-weight:400; }
         .delivery-badge .heart { color:#ffd700; font-size:18px; }
-        .firebase-status { display:inline-flex; align-items:center; gap:8px; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
-        .firebase-status.online { background:#d4edda; color:#155724; }
-        .firebase-status.offline { background:#f8d7da; color:#721c24; }
-        .firebase-status .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
-        .firebase-status.online .dot { background:#28a745; }
-        .firebase-status.offline .dot { background:#dc3545; }
         .category-buttons { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; margin-bottom:12px; }
         .cat-btn { background:#ffffff; border:2px solid #d4c9b8; border-radius:20px; padding:16px 6px; text-align:center; cursor:pointer; transition:all 0.3s; font-family:'Cairo',sans-serif; box-shadow:0 4px 12px rgba(0,0,0,0.06); position:relative; }
         .cat-btn:hover { border-color:#ffd700; transform:translateY(-4px); box-shadow:0 8px 24px rgba(255,215,0,0.2); }
@@ -126,10 +115,6 @@
         .btn-export:hover { background:#27ae60; transform:scale(1.02); }
         .btn-import { background:#3498db; color:#fff; }
         .btn-import:hover { background:#2980b9; transform:scale(1.02); }
-        .btn-firebase-sync { background:#4285f4; color:#fff; }
-        .btn-firebase-sync:hover { background:#3367d6; transform:scale(1.02); }
-        .btn-firebase-load { background:#34a853; color:#fff; }
-        .btn-firebase-load:hover { background:#2d9249; transform:scale(1.02); }
         .order-card { background:#f8f4ec; border-radius:14px; padding:16px; margin-top:12px; border-right:4px solid #ffd700; transition:0.3s; border:1px solid #ede6da; border-right:4px solid #ffd700; }
         .order-card:hover { background:#f5efe4; }
         .order-card .order-number { font-size:20px; font-weight:900; color:#1a1a2e; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
@@ -217,10 +202,10 @@
         .image-modal-content img { max-width:100%; max-height:90vh; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.5); border:3px solid #ffd700; cursor:default; }
         .image-close { position:absolute; top:-40px; right:0; color:#fff; font-size:32px; font-weight:700; cursor:pointer; transition:0.3s; background:rgba(255,50,50,0.8); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; }
         .image-close:hover { background:#e74c3c; transform:rotate(90deg); }
-        .storage-warning { display:none; background:#ff6b6b; color:#fff; padding:12px 16px; border-radius:12px; margin-bottom:12px; text-align:center; font-weight:700; border:2px solid #c0392b; }
-        .storage-warning .icon { font-size:24px; display:block; margin-bottom:4px; }
         @media(max-width:420px) { .category-buttons { gap:8px; } .cat-btn { padding:12px 4px; border-radius:16px; } .cat-btn .icon { font-size:26px; } .cat-btn .name { font-size:15px; } .cat-btn-other { padding:14px 8px; border-radius:16px; } .cat-btn-other .icon { font-size:24px; } .cat-btn-other .name { font-size:16px; } .modal-box { padding:20px 16px; } .modal-tabs { gap:8px; } .modal-tab { font-size:15px; padding:12px 8px; } .modal-tab .tab-icon { font-size:24px; } .admin-box { padding:20px 16px; } .admin-box .row2 { grid-template-columns:1fr; gap:0; } .logo-text .main { font-size:28px; } .logo-container { width:80px; height:80px; } .logo-container .logo-placeholder { font-size:32px; } .delivery-badge { padding:4px 14px; gap:6px; max-width:280px; } .delivery-badge .label { font-size:12px; } .order-card .order-actions button { min-width:60px; font-size:12px; padding:6px 10px; } .stats-grid { grid-template-columns:1fr 1fr; } .stats-card.full { grid-column:span 2; } .stats-card .number { font-size:22px; } .image-close { top:-35px; width:32px; height:32px; font-size:24px; } .search-box input { font-size:14px; padding:8px 12px 8px 32px; } }
         @media(max-width:360px) { .category-buttons { grid-template-columns:1fr 1fr; } .cat-btn-other { grid-column:span 2; } .logo-text .main { font-size:22px; } .logo-container { width:70px; height:70px; } .logo-container .logo-placeholder { font-size:28px; } .stats-grid { grid-template-columns:1fr; } .stats-card.full { grid-column:span 1; } .image-close { top:-30px; width:28px; height:28px; font-size:18px; } }
+        .storage-warning { display:none; background:#ff6b6b; color:#fff; padding:12px 16px; border-radius:12px; margin-bottom:12px; text-align:center; font-weight:700; border:2px solid #c0392b; }
+        .storage-warning .icon { font-size:24px; display:block; margin-bottom:4px; }
     </style>
 </head>
 <body>
@@ -241,14 +226,7 @@
                     </div>
                     <div class="logo-text"><div class="main">Zoo <span>Order</span></div><div class="sub">🇲🇦 Système de Commandes</div></div>
                 </div>
-                <div class="delivery-badge">
-                    <span class="label">🛵 Livraison Rapide</span>
-                    <span class="heart">❤️</span>
-                    <span class="label">Avec Amour</span>
-                    <span id="firebaseStatus" class="firebase-status offline">
-                        <span class="dot"></span> Firebase
-                    </span>
-                </div>
+                <div class="delivery-badge"><span class="label">🛵 Livraison Rapide</span><span class="heart">❤️</span><span class="label">Avec Amour</span></div>
             </div>
         </div>
 
@@ -296,8 +274,6 @@
                 <button class="btn-export" onclick="exportData()">📤 Exporter</button>
                 <button class="btn-import" onclick="document.getElementById('importFile').click()">📥 Importer</button>
                 <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)" />
-                <button class="btn-firebase-sync" onclick="syncAllData()">🔄 Sync Firebase</button>
-                <button class="btn-firebase-load" onclick="loadAllData()">📥 Load Firebase</button>
             </div>
             <div id="ordersContainer"><div class="empty-orders"><span class="icon">📭</span>Aucune commande</div></div>
         </div>
@@ -369,177 +345,7 @@
     </div>
 
     <script>
-        // ============================================================
-        // 🔥 FIREBASE CONFIG - COMPLET
-        // ============================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyAiya8dtiAi9t_Fq80zH6xnEC2lyUMsb4o",
-            authDomain: "order-zoo.firebaseapp.com",
-            projectId: "order-zoo",
-            storageBucket: "order-zoo.firebasestorage.app",
-            messagingSenderId: "67139384423",
-            appId: "1:67139384423:web:78732ff4c8039e87f490c2",
-            measurementId: "G-ZWLL8C2XJ7"
-        };
-
-        // تهيئة Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        let firebaseConnected = false;
-
-        function updateFirebaseStatus(connected) {
-            firebaseConnected = connected;
-            const statusEl = document.getElementById('firebaseStatus');
-            if (connected) {
-                statusEl.className = 'firebase-status online';
-                statusEl.innerHTML = '<span class="dot"></span> Firebase ✓';
-            } else {
-                statusEl.className = 'firebase-status offline';
-                statusEl.innerHTML = '<span class="dot"></span> Firebase ✗';
-            }
-        }
-
-        async function testFirebaseConnection() {
-            try {
-                await db.collection('_test').doc('_test').set({ test: true });
-                await db.collection('_test').doc('_test').delete();
-                updateFirebaseStatus(true);
-                console.log('✅ Firebase connecté');
-                return true;
-            } catch (error) {
-                updateFirebaseStatus(false);
-                console.warn('⚠️ Firebase déconnecté:', error.message);
-                return false;
-            }
-        }
-
-        // ============================================================
-        // TOAST
-        // ============================================================
-        function showToast(message) {
-            var toast = document.createElement('div');
-            toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:12px 24px;border-radius:50px;font-family:"Cairo",sans-serif;font-size:15px;font-weight:700;z-index:9999;border:2px solid #ffd700;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;max-width:90%;animation:slideUp 0.3s ease;';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(function() { toast.remove(); }, 3000);
-        }
-
-        // ============================================================
-        // FONCTIONS FIREBASE
-        // ============================================================
-        async function saveProductsToFirebase() {
-            try {
-                await db.collection('zooData').doc('products').set(allProducts);
-                console.log('✅ Produits sauvegardés');
-                return true;
-            } catch (error) {
-                console.error('❌ Erreur:', error);
-                return false;
-            }
-        }
-
-        async function loadProductsFromFirebase() {
-            try {
-                const doc = await db.collection('zooData').doc('products').get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    for (let key in data) {
-                        if (allProducts[key]) {
-                            allProducts[key].foods = data[key].foods || [];
-                            allProducts[key].accessories = data[key].accessories || [];
-                        }
-                    }
-                    console.log('✅ Produits chargés');
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error('❌ Erreur:', error);
-                return false;
-            }
-        }
-
-        async function saveOrdersToFirebase() {
-            try {
-                await db.collection('zooData').doc('orders').set({ orders: orders, refCounter: refCounter });
-                console.log('✅ Commandes sauvegardées');
-                return true;
-            } catch (error) {
-                console.error('❌ Erreur:', error);
-                return false;
-            }
-        }
-
-        async function loadOrdersFromFirebase() {
-            try {
-                const doc = await db.collection('zooData').doc('orders').get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    orders = data.orders || [];
-                    refCounter = data.refCounter || 0;
-                    console.log('✅ Commandes chargées');
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error('❌ Erreur:', error);
-                return false;
-            }
-        }
-
-        async function syncAllData() {
-            showToast('⏳ Synchronisation...');
-            try {
-                const [p, o] = await Promise.all([saveProductsToFirebase(), saveOrdersToFirebase()]);
-                if (p && o) { showToast('✅ Synchronisé avec Firebase'); await testFirebaseConnection(); } 
-                else { showToast('⚠️ Synchronisation partielle'); }
-            } catch (error) { showToast('❌ Erreur'); console.error(error); }
-        }
-
-        async function loadAllData() {
-            showToast('⏳ Chargement...');
-            try {
-                const [p, o] = await Promise.all([loadProductsFromFirebase(), loadOrdersFromFirebase()]);
-                if (p || o) {
-                    updateBadges(); updateCartUI(); renderOrders();
-                    localStorage.setItem('zooOrderProducts', JSON.stringify(allProducts));
-                    localStorage.setItem('zooOrders', JSON.stringify(orders));
-                    showToast('✅ Données chargées');
-                    await testFirebaseConnection();
-                } else { showToast('ℹ️ Aucune donnée'); }
-            } catch (error) { showToast('❌ Erreur'); console.error(error); }
-        }
-
-        // ============================================================
-        // DONNÉES - VERSION SIMPLIFIÉE
-        // ============================================================
-        var WHATSAPP_NUMBER = '0600700167';
-        function formatPrice(price) { return parseFloat(price).toFixed(2); }
-        function getTotal() { var total = 0; cart.forEach(function(item) { total += item.price * item.qty; }); return Math.round(total * 100) / 100; }
-
-        var allProducts = {
-            cats: { name: 'Chats', icon: '🐱', foods: [], accessories: [] },
-            dogs: { name: 'Chiens', icon: '🐕', foods: [], accessories: [] },
-            birds: { name: 'Oiseaux', icon: '🐦', foods: [], accessories: [] },
-            fish: { name: 'Poissons', icon: '🐠', foods: [], accessories: [] },
-            other: { name: 'Autres', icon: '🐇', foods: [], accessories: [] }
-        };
-
-        // Produits de démonstration
-        allProducts.cats.foods.push({ name: "Croquettes Chats", desc: "1.5kg", price: 45.00, type: "food", image: "" });
-        allProducts.cats.foods.push({ name: "Pâtée Chats", desc: "400g", price: 12.00, type: "food", image: "" });
-        allProducts.dogs.foods.push({ name: "Croquettes Chiens", desc: "15kg", price: 120.00, type: "food", image: "" });
-        allProducts.birds.foods.push({ name: "Graines Oiseaux", desc: "1kg", price: 18.00, type: "food", image: "" });
-        allProducts.fish.foods.push({ name: "Nourriture Poisson", desc: "250g", price: 9.00, type: "food", image: "" });
-
-        var cart = [];
-        var orders = [];
-        var refCounter = 0;
-
-        // ============================================================
-        // LOGO
-        // ============================================================
+        // ===== Gestion du logo =====
         function loadLogo() {
             var savedLogo = localStorage.getItem('zooLogo');
             if (savedLogo) {
@@ -563,66 +369,178 @@
                     img.style.display = 'block';
                     placeholder.style.display = 'none';
                     saveLogo(imageData);
-                    showToast('✅ Logo mis à jour');
+                    showToast('✅ Logo mis à jour avec succès');
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        // ============================================================
-        // CHARGEMENT DONNÉES
-        // ============================================================
+        // ===== Données de l'application =====
+        var WHATSAPP_NUMBER = '0600700167';
+
+        function formatPrice(price) { return parseFloat(price).toFixed(2); }
+        function getTotal() {
+            var total = 0;
+            cart.forEach(function(item) { total += item.price * item.qty; });
+            return Math.round(total * 100) / 100;
+        }
+
+        var allProducts = {
+            cats: { name: 'Chats', icon: '🐱', foods: [], accessories: [] },
+            dogs: { name: 'Chiens', icon: '🐕', foods: [], accessories: [] },
+            birds: { name: 'Oiseaux', icon: '🐦', foods: [], accessories: [] },
+            fish: { name: 'Poissons', icon: '🐠', foods: [], accessories: [] },
+            other: { name: 'Autres', icon: '🐇', foods: [], accessories: [] }
+        };
+
+        var cart = [];
+        var orders = [];
+        var refCounter = 0;
+
+        // ===== Ouvrir/Fermer l'image agrandie =====
+        function openImageModal(imageSrc) {
+            if (!imageSrc || imageSrc === '') { alert('❌ Aucune image pour ce produit'); return; }
+            document.getElementById('enlargedImage').src = imageSrc;
+            document.getElementById('imageModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // ===== Compression d'image =====
+        function compressImage(file, maxWidth, maxHeight, quality) {
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        var canvas = document.createElement('canvas');
+                        var width = img.width;
+                        var height = img.height;
+                        if (width > height) {
+                            if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+                        } else {
+                            if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        var dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = function() { reject('Erreur de chargement de l\'image'); };
+                    img.src = e.target.result;
+                };
+                reader.onerror = function() { reject('Erreur de lecture du fichier'); };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ===== Sauvegarde des produits avec vérification d'espace =====
+        function checkStorageSpace() {
+            try {
+                var test = 'a'.repeat(1024 * 1024);
+                localStorage.setItem('_test', test);
+                localStorage.removeItem('_test');
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function saveProducts() {
+            try {
+                var dataToSave = JSON.stringify(allProducts);
+                var sizeInKB = Math.round(dataToSave.length / 1024);
+                console.log('Taille des données: ' + sizeInKB + ' KB');
+                
+                if (dataToSave.length > 4.5 * 1024 * 1024) {
+                    document.getElementById('storageWarning').style.display = 'block';
+                    showToast('⚠️ Espace de stockage presque plein !');
+                    return false;
+                } else {
+                    document.getElementById('storageWarning').style.display = 'none';
+                }
+                
+                localStorage.setItem('zooOrderProducts', dataToSave);
+                localStorage.setItem('zooOrderProducts_backup', dataToSave);
+                console.log('✅ Produits sauvegardés (taille: ' + sizeInKB + ' KB)');
+                return true;
+            } catch (e) {
+                console.error('❌ Erreur de sauvegarde:', e);
+                document.getElementById('storageWarning').style.display = 'block';
+                showToast('❌ Espace de stockage plein ! Supprimez des images ou exportez les données.');
+                return false;
+            }
+        }
+
         function loadProducts() {
             var savedProducts = localStorage.getItem('zooOrderProducts');
             if (savedProducts) {
                 try {
                     var parsed = JSON.parse(savedProducts);
-                    for (var key in parsed) { if (allProducts[key]) { allProducts[key].foods = parsed[key].foods || []; allProducts[key].accessories = parsed[key].accessories || []; } }
-                    return true;
-                } catch (e) {}
+                    if (parsed && typeof parsed === 'object') {
+                        for (var key in parsed) {
+                            if (allProducts[key]) {
+                                allProducts[key].foods = parsed[key].foods || [];
+                                allProducts[key].accessories = parsed[key].accessories || [];
+                            }
+                        }
+                        console.log('✅ Produits chargés');
+                        return true;
+                    }
+                } catch (e) {
+                    console.error('❌ Erreur de chargement:', e);
+                    var backup = localStorage.getItem('zooOrderProducts_backup');
+                    if (backup) {
+                        try {
+                            var parsedBackup = JSON.parse(backup);
+                            for (var key2 in parsedBackup) {
+                                if (allProducts[key2]) {
+                                    allProducts[key2].foods = parsedBackup[key2].foods || [];
+                                    allProducts[key2].accessories = parsedBackup[key2].accessories || [];
+                                }
+                            }
+                            console.log('✅ Restauration depuis la sauvegarde');
+                            return true;
+                        } catch (e2) { console.error('❌ Erreur de restauration:', e2); }
+                    }
+                }
             }
+            console.log('ℹ️ Données par défaut utilisées');
             return false;
         }
 
-        function saveProducts() {
-            try {
-                localStorage.setItem('zooOrderProducts', JSON.stringify(allProducts));
-                localStorage.setItem('zooOrderProducts_backup', JSON.stringify(allProducts));
-                saveProductsToFirebase();
-                return true;
-            } catch (e) { return false; }
-        }
-
-        function saveCart() { localStorage.setItem('zooCart', JSON.stringify(cart)); updateCartUI(); }
-        function saveOrders() { localStorage.setItem('zooOrders', JSON.stringify(orders)); renderOrders(); saveOrdersToFirebase(); }
-
+        // ===== Chargement des données =====
         function loadData() {
             loadLogo();
             loadProducts();
             var savedCart = localStorage.getItem('zooCart');
-            if (savedCart) { try { cart = JSON.parse(savedCart); } catch (e) {} }
+            if (savedCart) { try { cart = JSON.parse(savedCart); } catch (e) { console.log('Erreur chargement panier'); } }
             var savedOrders = localStorage.getItem('zooOrders');
             if (savedOrders) {
                 try {
                     orders = JSON.parse(savedOrders);
                     if (orders.length > 0) {
                         var maxRef = 0;
-                        orders.forEach(function(o) { if (o.ref) { var num = parseInt(o.ref); if (num > maxRef) maxRef = num; } });
+                        orders.forEach(function(o) {
+                            if (o.ref) { var num = parseInt(o.ref); if (num > maxRef) maxRef = num; }
+                        });
                         refCounter = maxRef;
                     }
-                } catch (e) {}
+                } catch (e) { console.log('Erreur chargement commandes'); }
             }
             updateBadges();
             updateCartUI();
             renderOrders();
-            testFirebaseConnection().then(function(connected) {
-                if (connected) { loadAllData(); }
-            });
+            checkStorageSpace();
         }
 
-        // ============================================================
-        // FONCTIONS UI
-        // ============================================================
+        function saveCart() { localStorage.setItem('zooCart', JSON.stringify(cart)); updateCartUI(); }
+        function saveOrders() { localStorage.setItem('zooOrders', JSON.stringify(orders)); renderOrders(); }
         function updateBadges() {
             var cats = ['cats', 'dogs', 'birds', 'fish', 'other'];
             cats.forEach(function(c) {
@@ -632,23 +550,28 @@
             });
         }
 
+        // ===== Panier =====
         function addToCart(productName, productPrice) {
             var price = parseFloat(productPrice);
             var existing = cart.find(function(item) { return item.name === productName; });
             if (existing) { existing.qty += 1; } else { cart.push({ name: productName, price: price, qty: 1 }); }
             saveCart();
-            showToast('✅ ' + productName + ' ajouté');
+            showToast('✅ ' + productName + ' ajouté au panier');
         }
-
-        function removeFromCart(index) { cart.splice(index, 1); saveCart(); }
+        function removeFromCart(index) { cart.splice(index, 1); saveCart(); showToast('🗑️ Produit retiré du panier'); }
         function updateCartQty(index, delta) {
             if (cart[index].qty + delta <= 0) { removeFromCart(index); return; }
             cart[index].qty += delta;
             saveCart();
         }
         function getItemCount() { var count = 0; cart.forEach(function(item) { count += item.qty; }); return count; }
-        function clearCart() { if (cart.length === 0 || !confirm('Vider le panier ?')) return; cart = []; saveCart(); }
-
+        function clearCart() {
+            if (cart.length === 0) return;
+            if (!confirm('Vider le panier ?')) return;
+            cart = [];
+            saveCart();
+            showToast('🗑️ Panier vidé');
+        }
         function updateCartUI() {
             var container = document.getElementById('cartContainer');
             var totalDiv = document.getElementById('cartTotal');
@@ -674,11 +597,9 @@
             actionsDiv.style.display = 'grid';
         }
 
-        // ============================================================
-        // CLIENT MODAL
-        // ============================================================
+        // ===== Client modal =====
         function openCustomerModal() {
-            if (cart.length === 0) { alert('❌ Panier vide !'); return; }
+            if (cart.length === 0) { alert('❌ Panier vide ! Ajoutez des produits'); return; }
             document.getElementById('customerModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -687,13 +608,14 @@
             document.body.style.overflow = 'auto';
         }
 
+        // ===== Enregistrer la commande =====
         function saveOrder() {
             var customerName = document.getElementById('customerName').value.trim();
             var customerPhone = document.getElementById('customerPhone').value.trim();
             var customerAddress = document.getElementById('customerAddress').value.trim();
             var deliveryNote = document.getElementById('deliveryNote').value.trim();
-            if (!customerName) { alert('❌ Entrez le nom'); return; }
-            if (!customerPhone) { alert('❌ Entrez le téléphone'); return; }
+            if (!customerName) { alert('❌ Entrez le nom du client'); return; }
+            if (!customerPhone) { alert('❌ Entrez le numéro de téléphone'); return; }
             if (!customerAddress) { alert('❌ Entrez l\'adresse'); return; }
             refCounter++;
             var ref = String(refCounter).padStart(5, '0');
@@ -720,9 +642,7 @@
             showToast('✅ Commande enregistrée !');
         }
 
-        // ============================================================
-        // ORDRES
-        // ============================================================
+        // ===== Afficher les commandes =====
         function renderOrders() {
             var container = document.getElementById('ordersContainer');
             var countSpan = document.getElementById('ordersCount');
@@ -740,9 +660,68 @@
             container.innerHTML = html;
         }
 
-        function deleteOrder(index) { if (!confirm('Supprimer ?')) return; orders.splice(index, 1); saveOrders(); showToast('🗑️ Supprimée'); }
-        function clearAllOrders() { if (orders.length === 0 || !confirm('⚠️ Supprimer toutes ?')) return; orders = []; saveOrders(); showToast('🗑️ Toutes supprimées'); }
+        // =============================================
+        // 🔹 Impression d'une commande - Style Thermer
+        // =============================================
+        function printOrder(index) {
+            var order = orders[index];
+            if (!order) return;
+            var ref = order.ref || String(index + 1).padStart(5, '0');
+            
+            var productsHtml = '';
+            order.items.forEach(function(item, i) {
+                var itemTotal = item.price * item.qty;
+                productsHtml += '<tr><td style="padding:2px 3px;border-bottom:1px solid #000;text-align:center;font-size:9px;">' + (i + 1) + '</td><td style="padding:2px 3px;border-bottom:1px solid #000;text-align:right;font-size:9px;">' + item.name + '</td><td style="padding:2px 3px;border-bottom:1px solid #000;text-align:center;font-size:9px;">' + item.qty + '</td><td style="padding:2px 3px;border-bottom:1px solid #000;text-align:center;font-size:9px;">' + formatPrice(item.price) + '</td><td style="padding:2px 3px;border-bottom:1px solid #000;text-align:center;font-size:9px;">' + formatPrice(itemTotal) + '</td></tr>';
+            });
 
+            var invoiceHtml = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Facture #' + ref + '</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:"Cairo",sans-serif;background:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:10px;direction:rtl;margin:0;}.invoice-wrapper{background:#fff;max-width:100%;width:100%;padding:8px 12px;border:2px solid #000;border-radius:0;font-size:12px;color:#000;}.invoice-header{text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:8px;}.invoice-header .logo{font-size:18px;font-weight:900;color:#000;line-height:1.3;}.invoice-header .logo .gold{color:#000;}.invoice-header .logo .delivery{color:#000;font-weight:400;font-size:10px;display:block;letter-spacing:1px;}.invoice-header .sub{color:#000;font-size:11px;margin-top:2px;font-weight:700;}.invoice-header .ref-box{border:2px solid #000;color:#000;padding:2px 10px;display:inline-block;font-weight:700;font-size:11px;margin-top:4px;letter-spacing:1px;}.invoice-header .phone{border:2px solid #000;color:#000;padding:2px 10px;display:inline-block;font-weight:700;font-size:10px;margin-top:3px;}.customer-info{border:2px solid #000;padding:6px 10px;margin-bottom:6px;font-size:10px;color:#000;}.customer-info .row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dashed #ccc;}.customer-info .row:last-child{border-bottom:none;}.customer-info .label{font-weight:700;color:#000;}.customer-info .value{color:#000;}.invoice-table{width:100%;border-collapse:collapse;margin:4px 0;font-size:10px;color:#000;}.invoice-table th{border:2px solid #000;padding:4px 3px;text-align:center;font-size:8px;font-weight:700;color:#000;}.invoice-table td{padding:3px 3px;text-align:center;color:#000;font-size:9px;}.invoice-total{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:3px solid #000;margin-top:4px;font-size:14px;font-weight:900;color:#000;}.invoice-total .total-price{color:#000;font-size:16px;font-weight:900;}.invoice-footer{text-align:center;margin-top:6px;padding-top:6px;border-top:2px solid #000;color:#000;font-size:9px;}.invoice-footer .thanks{color:#000;font-weight:700;font-size:10px;}.invoice-footer .small-text{font-size:8px;color:#555;margin-top:2px;}.print-btn{background:#000;color:#fff;border:2px solid #000;padding:8px;border-radius:4px;font-size:12px;font-weight:700;font-family:"Cairo",sans-serif;cursor:pointer;width:100%;margin-top:8px;transition:0.3s;}.print-btn:hover{background:#fff;color:#000;}@media print{.print-btn{display:none!important;}body{background:#fff;padding:0;margin:0;}.invoice-wrapper{max-width:58mm;padding:2px 4px;border:none;font-size:8px;}.invoice-header .logo{font-size:14px;}.invoice-header .logo .delivery{font-size:7px;}.invoice-header .sub{font-size:8px;}.invoice-header .ref-box{font-size:8px;padding:1px 6px;border-width:1px;}.invoice-header .phone{font-size:7px;padding:1px 6px;border-width:1px;}.customer-info{font-size:7px;padding:3px 4px;border-width:1px;}.customer-info .row{padding:1px 0;border-bottom:1px solid #000;}.invoice-table{font-size:7px;}.invoice-table th{font-size:6px;padding:2px 1px;border-width:1px;}.invoice-table td{font-size:7px;padding:2px 1px;border-width:1px;}.invoice-total{font-size:10px;padding:3px 0;}.invoice-total .total-price{font-size:12px;}.invoice-footer{font-size:7px;padding-top:3px;}.invoice-footer .thanks{font-size:7px;}.invoice-footer .small-text{font-size:6px;}}</style></head><body><div class="invoice-wrapper"><div class="invoice-header"><div class="logo">🐾 Zoo <span class="gold">Delivery</span><span class="delivery">✦ Livraison Rapide ✦</span></div><div class="sub">Facture Commande #' + ref + '</div><div class="ref-box">📌 Réf: ' + ref + '</div><div class="phone">📞 ' + WHATSAPP_NUMBER + '</div></div><div class="customer-info"><div class="row"><span class="label">👤 Client:</span><span class="value">' + order.customer + '</span></div><div class="row"><span class="label">📞 Téléphone:</span><span class="value">' + order.phone + '</span></div><div class="row"><span class="label">📍 Adresse:</span><span class="value">' + order.address + '</span></div>' + (order.note ? '<div class="row"><span class="label">📝 Notes:</span><span class="value">' + order.note + '</span></div>' : '') + '</div><table class="invoice-table"><thead><tr><th>#</th><th>Produit</th><th>Qté</th><th>Prix U.</th><th>Total</th></tr></thead><tbody>' + productsHtml + '</tbody></table><div class="invoice-total"><span>Total</span><span class="total-price">' + formatPrice(order.total) + ' DH</span></div><div class="invoice-footer"><div class="thanks">🙏 Merci pour votre confiance</div><div class="small-text">' + new Date().toLocaleString('fr-MA') + '</div></div><button class="print-btn" onclick="window.print()">🖨️ Imprimer</button></div><script>setTimeout(function(){window.print();},500);<\/script></body></html>';
+
+            var win = window.open('', '_blank', 'width=400,height=600');
+            win.document.write(invoiceHtml);
+            win.document.close();
+        }
+
+        // ===== Impression de toutes les commandes =====
+        function printAllOrders() {
+            if (orders.length === 0) { alert('Aucune commande à imprimer'); return; }
+            var now = new Date().toLocaleString('fr-MA');
+            var grandTotal = 0, totalProducts = 0;
+            orders.forEach(function(order) {
+                grandTotal += order.total;
+                order.items.forEach(function(item) { totalProducts += item.qty; });
+            });
+            var ordersTable = '';
+            orders.forEach(function(order, idx) {
+                var ref = order.ref || String(idx + 1).padStart(5, '0');
+                ordersTable += '<tr><td style="padding:3px 4px;border-bottom:1px solid #000;text-align:center;font-size:9px;">' + (idx + 1) + '</td><td style="padding:3px 4px;border-bottom:1px solid #000;text-align:center;font-size:9px;">' + ref + '</td><td style="padding:3px 4px;border-bottom:1px solid #000;text-align:right;font-size:9px;">' + order.customer + '</td><td style="padding:3px 4px;border-bottom:1px solid #000;text-align:center;font-size:9px;font-weight:700;">' + formatPrice(order.total) + '</td></tr>';
+            });
+            var printHtml = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Résumé des commandes</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:"Cairo",sans-serif;background:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:10px;direction:rtl;margin:0;}.wrapper{background:#fff;max-width:100%;width:100%;padding:8px 12px;border:2px solid #000;border-radius:0;}.header{text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:8px;}.header .logo{font-size:18px;font-weight:900;color:#000;}.header .logo span{color:#000;}.header .sub{color:#000;font-size:11px;}.header .date{color:#000;font-size:10px;margin-top:2px;}.summary{border:2px solid #000;padding:8px;margin-bottom:8px;display:flex;justify-content:space-around;flex-wrap:wrap;gap:4px;}.summary .item{text-align:center;}.summary .item .number{font-size:14px;font-weight:900;color:#000;}.summary .item .label{font-size:8px;color:#000;}table{width:100%;border-collapse:collapse;margin:4px 0;}table th{border:2px solid #000;padding:4px;text-align:center;font-size:8px;font-weight:700;color:#000;}table td{padding:4px;text-align:center;font-size:9px;border-bottom:1px solid #000;color:#000;}.grand-total{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:3px solid #000;margin-top:4px;font-size:14px;font-weight:900;color:#000;}.grand-total .total-price{color:#000;font-size:16px;}.print-btn{background:#000;color:#fff;border:2px solid #000;padding:8px;border-radius:4px;font-size:12px;font-weight:700;font-family:"Cairo",sans-serif;cursor:pointer;width:100%;margin-top:8px;}.print-btn:hover{background:#fff;color:#000;}.footer-text{text-align:center;margin-top:6px;padding-top:6px;border-top:2px solid #000;color:#000;font-size:9px;}.footer-text .thanks{color:#000;font-weight:700;}@media print{.print-btn{display:none;}body{background:#fff;padding:0;margin:0;}.wrapper{max-width:58mm;padding:2px 4px;border:none;font-size:8px;}.header .logo{font-size:14px;}.header .sub{font-size:8px;}.header .date{font-size:7px;}.summary{padding:4px;border-width:1px;}.summary .item .number{font-size:10px;}.summary .item .label{font-size:6px;}table th{font-size:6px;padding:2px;border-width:1px;}table td{font-size:7px;padding:2px 3px;border-width:1px;}.grand-total{font-size:10px;padding:3px 0;}.grand-total .total-price{font-size:12px;}.footer-text{font-size:7px;padding-top:3px;}.footer-text .thanks{font-size:7px;}}</style></head><body><div class="wrapper"><div class="header"><div class="logo">🐾 Zoo <span>Delivery</span></div><div class="sub">Résumé des commandes</div><div class="date">📅 ' + now + '</div></div><div class="summary"><div class="item"><div class="number">' + orders.length + '</div><div class="label">Commandes</div></div><div class="item"><div class="number">' + totalProducts + '</div><div class="label">Produits</div></div><div class="item"><div class="number">' + formatPrice(grandTotal) + '</div><div class="label">Chiffre d\'affaires</div></div></div><table><thead><tr><th>#</th><th>Réf</th><th>Client</th><th>Total</th></tr></thead><tbody>' + ordersTable + '</tbody></table><div class="grand-total"><span>Total général</span><span class="total-price">' + formatPrice(grandTotal) + ' DH</span></div><div class="footer-text"><div class="thanks">🙏 Merci pour votre confiance</div></div><button class="print-btn" onclick="window.print()">🖨️ Imprimer</button></div><script>setTimeout(function(){window.print();},500);<\/script></body></html>';
+            var win = window.open('', '_blank', 'width=400,height=600');
+            win.document.write(printHtml);
+            win.document.close();
+        }
+
+        // ===== Envoyer la commande via WhatsApp =====
+        function sendOrderWhatsApp(index) {
+            var order = orders[index];
+            if (!order) return;
+            var ref = order.ref || String(index + 1).padStart(5, '0');
+            var message = '📦 *Commande #' + ref + ' - Zoo Delivery*%0A%0A';
+            message += '👤 *Client:* ' + order.customer + '%0A';
+            message += '📞 *Téléphone:* ' + order.phone + '%0A';
+            message += '📍 *Adresse:* ' + order.address + '%0A';
+            if (order.note) message += '📝 *Notes:* ' + order.note + '%0A';
+            message += '%0A📋 *Détails de la commande:*%0A';
+            order.items.forEach(function(item) {
+                message += '• ' + item.name + ' × ' + item.qty + ' = ' + formatPrice(item.price * item.qty) + ' DH%0A';
+            });
+            message += '%0A💰 *Total:* ' + formatPrice(order.total) + ' DH%0A';
+            message += '%0A🛵 Livraison rapide | ❤️ Zoo Delivery';
+            var url = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + message;
+            window.open(url, '_blank');
+        }
+
+        // ===== Modifier une commande =====
         function editOrder(index) {
             var order = orders[index];
             if (!order) return;
@@ -750,20 +729,87 @@
             document.getElementById('customerPhone').value = order.phone;
             document.getElementById('customerAddress').value = order.address;
             document.getElementById('deliveryNote').value = order.note || '';
+            // Supprimer la commande pour la recréer après modification
             orders.splice(index, 1);
             saveOrders();
+            // Ajouter les produits au panier
             order.items.forEach(function(item) {
                 var existing = cart.find(function(c) { return c.name === item.name; });
                 if (existing) { existing.qty += item.qty; } else { cart.push({ name: item.name, price: item.price, qty: item.qty }); }
             });
             saveCart();
             openCustomerModal();
-            showToast('✏️ Modifiez et réenregistrez');
+            showToast('✏️ Modifiez les informations et réenregistrez');
         }
 
-        // ============================================================
-        // STATS
-        // ============================================================
+        // ===== Supprimer une commande =====
+        function deleteOrder(index) {
+            if (!confirm('Supprimer cette commande ?')) return;
+            orders.splice(index, 1);
+            saveOrders();
+            showToast('🗑️ Commande supprimée');
+        }
+
+        // ===== Supprimer toutes les commandes =====
+        function clearAllOrders() {
+            if (orders.length === 0) return;
+            if (!confirm('⚠️ Supprimer toutes les commandes ?')) return;
+            orders = [];
+            saveOrders();
+            showToast('🗑️ Toutes les commandes supprimées');
+        }
+
+        // ===== Export/Import =====
+        function exportData() {
+            var data = {
+                products: allProducts,
+                orders: orders,
+                refCounter: refCounter,
+                exportedAt: new Date().toISOString()
+            };
+            var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'zoo_data_backup_' + new Date().toISOString().slice(0,10) + '.json';
+            link.click();
+            showToast('📤 Données exportées avec succès');
+        }
+
+        function importData(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var data = JSON.parse(e.target.result);
+                    if (data.products) {
+                        for (var key in data.products) {
+                            if (allProducts[key]) {
+                                allProducts[key].foods = data.products[key].foods || [];
+                                allProducts[key].accessories = data.products[key].accessories || [];
+                            }
+                        }
+                        saveProducts();
+                    }
+                    if (data.orders) {
+                        orders = data.orders;
+                        saveOrders();
+                    }
+                    if (data.refCounter) {
+                        refCounter = data.refCounter;
+                    }
+                    updateBadges();
+                    renderOrders();
+                    showToast('📥 Données importées avec succès');
+                } catch (err) {
+                    alert('❌ Erreur lors de l\'importation: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // ===== Statistiques =====
         function openStatsModal() {
             document.getElementById('statsModal').classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -775,7 +821,8 @@
         }
         function updateStats() {
             document.getElementById('totalOrders').textContent = orders.length;
-            var revenue = 0, productStats = {};
+            var revenue = 0;
+            var productStats = {};
             orders.forEach(function(order) {
                 revenue += order.total;
                 order.items.forEach(function(item) {
@@ -797,203 +844,16 @@
             }
         }
 
-        // ============================================================
-        // IMPRESSION TICKET
-        // ============================================================
-        function printOrder(index) {
-            var order = orders[index];
-            if (!order) return;
-            var ref = order.ref || String(index + 1).padStart(5, '0');
-            var now = new Date();
-            var dateStr = now.toLocaleDateString('fr-MA') + ' ' + now.toLocaleTimeString('fr-MA', { hour: '2-digit', minute: '2-digit' });
-
-            var productsHtml = '';
-            order.items.forEach(function(item, i) {
-                var itemTotal = item.price * item.qty;
-                productsHtml += '<div style="display:flex;justify-content:space-between;font-size:9px;padding:2px 0;border-bottom:1px dashed #ddd;">' +
-                    '<span>' + (i + 1) + '. ' + item.name + ' × ' + item.qty + '</span>' +
-                    '<span style="font-weight:700;">' + formatPrice(itemTotal) + '</span>' +
-                    '</div>';
-            });
-
-            var invoiceHtml = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ticket #' + ref + '</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:"Cairo",sans-serif;background:#ffffff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:8px 4px;direction:rtl;}.ticket{max-width:220px;width:100%;padding:6px 8px;background:#ffffff;text-align:center;border:1px solid #ccc;border-radius:4px;}.ticket .brand{font-size:18px;font-weight:900;color:#1a1a2e;}.ticket .brand .gold{color:#c97b2b;}.ticket .brand .sub{font-weight:400;font-size:8px;color:#888;display:block;}.ticket .divider-dash{height:1px;border-top:1px dashed #aaa;margin:4px 0;}.ticket .ref{font-size:10px;font-weight:700;margin:2px 0;}.ticket .date{font-size:8px;color:#888;margin-bottom:3px;}.ticket .customer{font-size:11px;font-weight:700;padding:3px 0;}.ticket .items{text-align:right;padding:3px 0;}.ticket .total{display:flex;justify-content:space-between;font-size:14px;font-weight:900;padding:6px 0 3px;border-top:2px solid #333;margin-top:3px;}.ticket .total .amount{color:#c97b2b;font-size:16px;}.ticket .thanks{font-size:8px;color:#888;margin-top:4px;padding-top:4px;border-top:1px dashed #aaa;}.print-btn{background:#1a1a2e;color:#fff;border:none;padding:6px;border-radius:20px;font-size:10px;font-weight:700;cursor:pointer;width:100%;margin-top:6px;}@media print{.print-btn{display:none;}body{background:#fff;padding:0;margin:0;}.ticket{max-width:100%;padding:4px 6px;border:none;border-radius:0;}.ticket .brand{font-size:15px;}.ticket .brand .sub{font-size:7px;}.ticket .ref{font-size:9px;}.ticket .date{font-size:7px;}.ticket .customer{font-size:10px;}.ticket .items div{font-size:7px!important;padding:1px 0;}.ticket .total{font-size:12px;padding:4px 0 2px;}.ticket .total .amount{font-size:13px;}.ticket .thanks{font-size:7px;}}</style></head><body><div class="ticket"><div class="brand">🐾 Zoo<span class="gold">Order</span><span class="sub">✦ Livraison Rapide ✦</span></div><div class="divider-dash"></div><div class="ref">📌 # ' + ref + '</div><div class="date">' + dateStr + '</div><div class="divider-dash"></div><div class="customer">👤 ' + order.customer + '</div><div class="divider-dash"></div><div class="items">' + productsHtml + '</div><div class="total"><span>Total</span><span class="amount">' + formatPrice(order.total) + ' DH</span></div><div class="thanks">🙏 Merci pour votre confiance</div><button class="print-btn" onclick="window.print()">🖨️ Imprimer</button></div><script>setTimeout(function(){window.print();},300);<\/script></body></html>';
-
-            var win = window.open('', '_blank', 'width=340,height=550');
-            win.document.write(invoiceHtml);
-            win.document.close();
+        // ===== Toast =====
+        function showToast(message) {
+            var toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:12px 24px;border-radius:50px;font-family:"Cairo",sans-serif;font-size:15px;font-weight:700;z-index:9999;border:2px solid #ffd700;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;max-width:90%;animation:slideUp 0.3s ease;';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 3000);
         }
 
-        // ============================================================
-        // WHATSAPP
-        // ============================================================
-        function sendOrderWhatsApp(index) {
-            var order = orders[index];
-            if (!order) return;
-            var ref = order.ref || String(index + 1).padStart(5, '0');
-            var message = '📦 *Commande #' + ref + ' - Zoo Order*%0A%0A';
-            message += '👤 *Client:* ' + order.customer + '%0A';
-            message += '📞 *Téléphone:* ' + order.phone + '%0A';
-            message += '📍 *Adresse:* ' + order.address + '%0A';
-            if (order.note) message += '📝 *Notes:* ' + order.note + '%0A';
-            message += '%0A📋 *Détails:*%0A';
-            order.items.forEach(function(item) {
-                message += '• ' + item.name + ' × ' + item.qty + ' = ' + formatPrice(item.price * item.qty) + ' DH%0A';
-            });
-            message += '%0A💰 *Total:* ' + formatPrice(order.total) + ' DH%0A';
-            message += '%0A🛵 Livraison rapide | ❤️ Zoo Order';
-            var url = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + message;
-            window.open(url, '_blank');
-        }
-
-        // ============================================================
-        // EXPORT / IMPORT
-        // ============================================================
-        function exportData() {
-            var data = { products: allProducts, orders: orders, refCounter: refCounter };
-            var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'zoo_data_backup_' + new Date().toISOString().slice(0, 10) + '.json';
-            link.click();
-            showToast('📤 Données exportées');
-        }
-
-        function importData(event) {
-            var file = event.target.files[0];
-            if (!file) return;
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    var data = JSON.parse(e.target.result);
-                    if (data.products) {
-                        for (var key in data.products) {
-                            if (allProducts[key]) {
-                                allProducts[key].foods = data.products[key].foods || [];
-                                allProducts[key].accessories = data.products[key].accessories || [];
-                            }
-                        }
-                        saveProducts();
-                    }
-                    if (data.orders) { orders = data.orders;
-                        saveOrders(); }
-                    if (data.refCounter) { refCounter = data.refCounter; }
-                    updateBadges();
-                    renderOrders();
-                    showToast('📥 Données importées');
-                } catch (err) { alert('❌ Erreur: ' + err.message); }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-
-        function printAllOrders() {
-            if (orders.length === 0) { alert('Aucune commande'); return; }
-            var now = new Date().toLocaleString('fr-MA');
-            var grandTotal = 0,
-                totalProducts = 0;
-            orders.forEach(function(order) {
-                grandTotal += order.total;
-                order.items.forEach(function(item) { totalProducts += item.qty; });
-            });
-            var ordersTable = '';
-            orders.forEach(function(order, idx) {
-                var ref = order.ref || String(idx + 1).padStart(5, '0');
-                ordersTable += '<div style="display:flex;justify-content:space-between;font-size:8px;padding:2px 0;border-bottom:1px dashed #ddd;">' +
-                    '<span>' + (idx + 1) + '. #' + ref + '</span>' +
-                    '<span>' + order.customer + '</span>' +
-                    '<span style="font-weight:700;">' + formatPrice(order.total) + '</span>' +
-                    '</div>';
-            });
-            var printHtml = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Résumé</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:"Cairo",sans-serif;background:#ffffff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:8px 4px;direction:rtl;}.ticket{max-width:240px;width:100%;padding:6px 8px;background:#ffffff;text-align:center;border:1px solid #ccc;border-radius:4px;}.ticket .brand{font-size:18px;font-weight:900;color:#1a1a2e;}.ticket .brand span{color:#c97b2b;}.ticket .divider-dash{height:1px;border-top:1px dashed #aaa;margin:4px 0;}.ticket .sub{font-size:9px;color:#888;margin:2px 0;}.ticket .date{font-size:8px;color:#888;margin-bottom:3px;}.ticket .summary{display:flex;justify-content:space-around;font-size:9px;padding:3px 0;}.ticket .summary .item{text-align:center;}.ticket .summary .number{font-weight:900;color:#c97b2b;font-size:12px;}.ticket .orders{text-align:right;padding:3px 0;}.ticket .total{display:flex;justify-content:space-between;font-size:14px;font-weight:900;padding:6px 0 3px;border-top:2px solid #333;margin-top:3px;}.ticket .total .amount{color:#c97b2b;font-size:16px;}.print-btn{background:#1a1a2e;color:#fff;border:none;padding:6px;border-radius:20px;font-size:10px;font-weight:700;cursor:pointer;width:100%;margin-top:6px;}@media print{.print-btn{display:none;}body{background:#fff;padding:0;margin:0;}.ticket{max-width:100%;padding:4px 6px;border:none;border-radius:0;}.ticket .brand{font-size:15px;}.ticket .sub{font-size:7px;}.ticket .date{font-size:7px;}.ticket .summary .number{font-size:10px;}.ticket .orders div{font-size:7px!important;padding:1px 0;}.ticket .total{font-size:12px;padding:4px 0 2px;}.ticket .total .amount{font-size:13px;}}</style></head><body><div class="ticket"><div class="brand">🐾 Zoo<span>Order</span></div><div class="sub">Résumé des commandes</div><div class="date">📅 ' + now + '</div><div class="divider-dash"></div><div class="summary"><div class="item"><div class="number">' + orders.length + '</div><div>Cmd</div></div><div class="item"><div class="number">' + totalProducts + '</div><div>Prod</div></div><div class="item"><div class="number">' + formatPrice(grandTotal) + '</div><div>CA</div></div></div><div class="divider-dash"></div><div class="orders">' + ordersTable + '</div><div class="total"><span>Total général</span><span class="amount">' + formatPrice(grandTotal) + ' DH</span></div><button class="print-btn" onclick="window.print()">🖨️ Imprimer</button></div><script>setTimeout(function(){window.print();},300);<\/script></body></html>';
-            var win = window.open('', '_blank', 'width=380,height=550);
-            win.document.write(printHtml);
-            win.document.close();
-        }
-
-        // ============================================================
-        // CATEGORIES MODAL
-        // ============================================================
-        var currentCategory = '';
-        var currentTab = 'food';
-        var searchTerm = '';
-
-        function openCategoryModal(category, icon, name) {
-            currentCategory = category;
-            document.getElementById('modalTitle').textContent = icon + ' ' + name;
-            document.getElementById('searchInput').value = '';
-            searchTerm = '';
-            document.getElementById('clearSearch').classList.remove('visible');
-            switchTab('food');
-            document.getElementById('categoryModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            renderCategoryProducts();
-        }
-
-        function closeCategoryModal() {
-            document.getElementById('categoryModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        function switchTab(tab) {
-            currentTab = tab;
-            document.getElementById('tabFood').classList.toggle('active', tab === 'food');
-            document.getElementById('tabAcc').classList.toggle('active', tab === 'acc');
-            document.getElementById('tabContentFood').classList.toggle('open', tab === 'food');
-            document.getElementById('tabContentAcc').classList.toggle('open', tab === 'acc');
-            renderCategoryProducts();
-        }
-
-        function filterProducts() {
-            searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-            var clearBtn = document.getElementById('clearSearch');
-            if (searchTerm.length > 0) { clearBtn.classList.add('visible'); } else { clearBtn.classList.remove('visible'); }
-            renderCategoryProducts();
-        }
-
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            searchTerm = '';
-            document.getElementById('clearSearch').classList.remove('visible');
-            renderCategoryProducts();
-        }
-
-        function renderCategoryProducts() {
-            var products = allProducts[currentCategory];
-            if (!products) return;
-            var foodContainer = document.getElementById('foodContent');
-            var accContainer = document.getElementById('accContent');
-            var search = searchTerm.toLowerCase();
-
-            function renderItems(items, container) {
-                var filtered = items;
-                if (search) {
-                    filtered = items.filter(function(item) {
-                        return item.name.toLowerCase().includes(search) || (item.desc && item.desc.toLowerCase().includes(search));
-                    });
-                }
-                if (filtered.length === 0) {
-                    container.innerHTML = '<div class="empty-msg">📭 Aucun produit trouvé</div>';
-                    return;
-                }
-                var html = '';
-                filtered.forEach(function(item) {
-                    var imageHtml = '';
-                    if (item.image) {
-                        imageHtml = '<img src="' + item.image + '" class="product-image" onclick="event.stopPropagation(); openImageModal(\'' + item.image + '\')" />';
-                    } else {
-                        imageHtml = '<span class="product-icon">📦</span>';
-                    }
-                    html += '<div class="product-item"><div class="info">' + imageHtml + '<div><div class="pname">' + item.name + '</div>' + (item.desc ? '<div class="pdesc">' + item.desc + '</div>' : '') + '</div></div><span class="price">' + formatPrice(item.price) + ' DH</span><button class="btn-add" onclick="addToCart(\'' + item.name.replace(/'/g, "\\'") + '\', ' + item.price + ')">➕ Ajouter</button></div>';
-                });
-                container.innerHTML = html;
-            }
-            renderItems(products.foods, foodContainer);
-            renderItems(products.accessories, accContainer);
-        }
-
-        // ============================================================
-        // ADMIN PANEL
-        // ============================================================
+        // ===== Administration des produits =====
         var currentAdminCategory = '';
         var selectedProductId = null;
 
@@ -1012,12 +872,10 @@
             document.getElementById('adminModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-
         function closeAdminModal() {
             document.getElementById('adminModal').classList.remove('active');
             document.body.style.overflow = 'auto';
         }
-
         function renderProductList() {
             var container = document.getElementById('productList');
             var products = allProducts[currentAdminCategory];
@@ -1033,7 +891,6 @@
             });
             container.innerHTML = html;
         }
-
         function selectProduct(index) {
             var products = allProducts[currentAdminCategory];
             var allItems = products.foods.concat(products.accessories);
@@ -1045,46 +902,69 @@
             document.getElementById('productPrice').value = item.price;
             document.getElementById('productType').value = item.type || 'food';
             var preview = document.getElementById('imagePreview');
-            if (item.image) { preview.src = item.image;
-                preview.style.display = 'block'; } else { preview.style.display = 'none';
-                preview.src = ''; }
+            if (item.image) {
+                preview.src = item.image;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+                preview.src = '';
+            }
+            // Mettre en surbrillance l'élément sélectionné
             var items = document.querySelectorAll('.product-list-admin .item');
             items.forEach(function(el) { el.style.background = 'transparent'; });
             if (items[index]) items[index].style.background = '#f0ebe2';
         }
-
         function saveProduct() {
             var name = document.getElementById('productName').value.trim();
             var desc = document.getElementById('productDesc').value.trim();
             var price = parseFloat(document.getElementById('productPrice').value);
             var type = document.getElementById('productType').value;
-            if (!name) { alert('❌ Entrez un nom'); return; }
-            if (isNaN(price) || price <= 0) { alert('❌ Prix valide'); return; }
+            if (!name) { alert('❌ Entrez un nom de produit'); return; }
+            if (isNaN(price) || price <= 0) { alert('❌ Entrez un prix valide'); return; }
             var products = allProducts[currentAdminCategory];
             var targetArray = (type === 'food') ? products.foods : products.accessories;
+            var imageInput = document.getElementById('productImage');
             var imageData = document.getElementById('imagePreview').src || '';
-            var product = { name: name, desc: desc, price: price, type: type, image: imageData };
+            
+            var product = {
+                name: name,
+                desc: desc,
+                price: price,
+                type: type,
+                image: imageData || ''
+            };
+            
             if (selectedProductId !== null) {
+                // Modification
                 var allItems = products.foods.concat(products.accessories);
                 if (selectedProductId < allItems.length) {
                     var oldItem = allItems[selectedProductId];
+                    // Déterminer si le type a changé
                     var oldType = oldItem.type || 'food';
                     if (oldType !== type) {
+                        // Supprimer de l'ancien tableau
                         var oldArray = (oldType === 'food') ? products.foods : products.accessories;
                         var idxToRemove = oldArray.indexOf(oldItem);
                         if (idxToRemove > -1) oldArray.splice(idxToRemove, 1);
+                        // Ajouter au nouveau tableau
                         targetArray.push(product);
                     } else {
+                        // Même type, remplacer
                         var idxInArray = targetArray.indexOf(oldItem);
-                        if (idxInArray > -1) targetArray[idxInArray] = product;
+                        if (idxInArray > -1) {
+                            targetArray[idxInArray] = product;
+                        }
                     }
                 }
             } else {
+                // Nouveau produit
                 targetArray.push(product);
             }
+            
             saveProducts();
             updateBadges();
             renderProductList();
+            // Réinitialiser les champs
             document.getElementById('productName').value = '';
             document.getElementById('productDesc').value = '';
             document.getElementById('productPrice').value = '';
@@ -1092,12 +972,11 @@
             document.getElementById('imagePreview').src = '';
             document.getElementById('productImage').value = '';
             selectedProductId = null;
-            showToast('✅ Produit enregistré');
+            showToast('✅ Produit enregistré !');
         }
-
         function deleteProduct() {
-            if (selectedProductId === null) { alert('❌ Sélectionnez un produit'); return; }
-            if (!confirm('Supprimer ?')) return;
+            if (selectedProductId === null) { alert('❌ Sélectionnez un produit à supprimer'); return; }
+            if (!confirm('Supprimer ce produit ?')) return;
             var products = allProducts[currentAdminCategory];
             var allItems = products.foods.concat(products.accessories);
             var item = allItems[selectedProductId];
@@ -1117,44 +996,108 @@
             showToast('🗑️ Produit supprimé');
         }
 
+        // Gestion de l'upload d'image pour l'admin
         document.getElementById('productImage').addEventListener('change', function(e) {
             var file = e.target.files[0];
             if (!file) return;
-            var reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('imagePreview').src = event.target.result;
+            compressImage(file, 300, 300, 0.7).then(function(dataUrl) {
+                document.getElementById('imagePreview').src = dataUrl;
                 document.getElementById('imagePreview').style.display = 'block';
                 showToast('✅ Image chargée');
-            };
-            reader.readAsDataURL(file);
+            }).catch(function(err) {
+                alert('❌ Erreur: ' + err);
+            });
         });
 
-        // ============================================================
-        // IMAGE MODAL
-        // ============================================================
-        function openImageModal(imageSrc) {
-            if (!imageSrc || imageSrc === '') { alert('❌ Aucune image'); return; }
-            document.getElementById('enlargedImage').src = imageSrc;
-            document.getElementById('imageModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
+        // ===== Catégories modal =====
+        var currentCategory = '';
+        var currentTab = 'food';
+        var searchTerm = '';
 
-        function closeImageModal() {
-            document.getElementById('imageModal').classList.remove('active');
+        function openCategoryModal(category, icon, name) {
+            currentCategory = category;
+            document.getElementById('modalTitle').textContent = icon + ' ' + name;
+            document.getElementById('searchInput').value = '';
+            searchTerm = '';
+            document.getElementById('clearSearch').classList.remove('visible');
+            switchTab('food');
+            document.getElementById('categoryModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            renderCategoryProducts();
+        }
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('active');
             document.body.style.overflow = 'auto';
         }
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tabFood').classList.toggle('active', tab === 'food');
+            document.getElementById('tabAcc').classList.toggle('active', tab === 'acc');
+            document.getElementById('tabContentFood').classList.toggle('open', tab === 'food');
+            document.getElementById('tabContentAcc').classList.toggle('open', tab === 'acc');
+            renderCategoryProducts();
+        }
+        function filterProducts() {
+            searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+            var clearBtn = document.getElementById('clearSearch');
+            if (searchTerm.length > 0) {
+                clearBtn.classList.add('visible');
+            } else {
+                clearBtn.classList.remove('visible');
+            }
+            renderCategoryProducts();
+        }
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            searchTerm = '';
+            document.getElementById('clearSearch').classList.remove('visible');
+            renderCategoryProducts();
+        }
+        function renderCategoryProducts() {
+            var products = allProducts[currentCategory];
+            if (!products) return;
+            var foodContainer = document.getElementById('foodContent');
+            var accContainer = document.getElementById('accContent');
+            var search = searchTerm.toLowerCase();
+            
+            function renderItems(items, container) {
+                var filtered = items;
+                if (search) {
+                    filtered = items.filter(function(item) {
+                        return item.name.toLowerCase().includes(search) || 
+                               (item.desc && item.desc.toLowerCase().includes(search));
+                    });
+                }
+                if (filtered.length === 0) {
+                    container.innerHTML = '<div class="empty-msg">📭 Aucun produit trouvé</div>';
+                    return;
+                }
+                var html = '';
+                filtered.forEach(function(item) {
+                    var imageHtml = '';
+                    if (item.image) {
+                        imageHtml = '<img src="' + item.image + '" class="product-image" onclick="event.stopPropagation(); openImageModal(\'' + item.image + '\')" />';
+                    } else {
+                        imageHtml = '<span class="product-icon">📦</span>';
+                    }
+                    html += '<div class="product-item"><div class="info">' + imageHtml + '<div><div class="pname">' + item.name + '</div>' + (item.desc ? '<div class="pdesc">' + item.desc + '</div>' : '') + '</div></div><span class="price">' + formatPrice(item.price) + ' DH</span><button class="btn-add" onclick="addToCart(\'' + item.name.replace(/'/g, "\\'") + '\', ' + item.price + ')">➕ Ajouter</button></div>';
+                });
+                container.innerHTML = html;
+            }
+            
+            renderItems(products.foods, foodContainer);
+            renderItems(products.accessories, accContainer);
+        }
 
-        // ============================================================
-        // DÉMARRAGE
-        // ============================================================
+        // ===== Initialisation =====
         loadData();
 
-        // Style animation
+        // Ajout du style pour les animations
         var styleSheet = document.createElement('style');
         styleSheet.textContent = '@keyframes slideUp { from { opacity:0; transform:translate(-50%,20px); } to { opacity:1; transform:translate(-50%,0); } }';
         document.head.appendChild(styleSheet);
 
-        // Fermeture des modals
+        // Fermeture des modals en cliquant à l'extérieur
         document.querySelectorAll('.modal-overlay, .customer-modal, .stats-modal, .admin-modal, .image-modal').forEach(function(el) {
             el.addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -1167,9 +1110,7 @@
             });
         });
 
-        console.log('🐾 Zoo Order - Système de commandes avec Firebase !');
-        console.log('🔥 Projet:', firebaseConfig.projectId);
-        console.log('📱 Connecté à Firebase');
+        console.log('🐾 Zoo Order - Système de commandes chargé !');
     </script>
 </body>
 </html>
